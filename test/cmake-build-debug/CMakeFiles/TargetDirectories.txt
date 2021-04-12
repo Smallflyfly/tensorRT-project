@@ -1,0 +1,3 @@
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/cmake-build-debug/CMakeFiles/edit_cache.dir
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/cmake-build-debug/CMakeFiles/test.dir

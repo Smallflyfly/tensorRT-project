@@ -1,0 +1,4 @@
+/home/smallflyfly/clion-2021.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/cmake-build-debug
