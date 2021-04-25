@@ -54,7 +54,7 @@ add_executable(opencv_example ${SAMPLES_COMMON_SOURCES} retinaFaceOnnx.cpp)
 #link_directories(/home/cuda-11.0/lib64)
 #include_directories(/home/cuda-11.0/include)
 #
-target_link_libraries(opencv_example ${LIBS} ${CUDA_LIBRARIES})
+#target_link_libraries(opencv_example ${LIBS} ${CUDA_LIBRARIES})
 target_link_libraries(opencv_example ${OpenCV_LIBS} ${TENSORRT_LIB})
 include_directories(./common/)
 include_directories(/home/TensorRT-7.2.2.3/samples/common)

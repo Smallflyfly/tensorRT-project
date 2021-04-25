@@ -54,7 +54,7 @@ private:
 
     void processInput(const samplesCommon::BufferManager& buffers);
 
-    void verifyOutput(const samplesCommon::BufferManager& buffer);
+    float *verifyOutput(const samplesCommon::BufferManager& buffer);
 };
 
 void RetinaFace::constructNetwork(RetinaFace::SampleUniquePtr<IBuilder> &builder,
@@ -84,7 +84,7 @@ void readImageFile(const string& imageFileName, const string& imageFilePath, u_i
     Mat im = imread(imageFileName);
     Mat image;
     resize(im, image, Size(640, 640), INTER_NEAREST);
-    imshow("image1", im);
+//    imshow("image1", im);
     cvtColor(image, image, COLOR_BGR2RGB);
     for (int i=0; i<h; i++) {
         for (int j=0; j<w; j++) {
@@ -93,9 +93,9 @@ void readImageFile(const string& imageFileName, const string& imageFilePath, u_i
             image.at<Vec3d>(i, j)[2] -= imageMean[2];
         }
     }
-    imshow("image2", image);
-    waitKey();
-    destroyAllWindows();
+//    imshow("image2", image);
+//    waitKey();
+//    destroyAllWindows();
 
 }
 
@@ -105,12 +105,47 @@ void RetinaFace::processInput(const samplesCommon::BufferManager &buffers) {
     const int inputC = mInputDims.d[1];
     string imageFileName = "test.jpg";
     string imageFilePath = "./";
-    vector<u_int8_t> fileData(inputH*inputW*inputC);
-    readImageFile(imageFileName, imageFilePath, fileData.data(), inputW, inputH, inputC);
-
+//    readImageFile(imageFileName, imageFilePath, fileData.data(), inputW, inputH, inputC);
+    const int imageMean[] = {104, 117, 123};
+    Mat im = imread(imageFileName);
+    Mat image;
+    resize(im, image, Size(640, 640), INTER_NEAREST);
+//    imshow("image1", im);
+//    cvtColor(image, image, COLOR_BGR2RGB);
+//    for (int i=0; i<inputH; i++) {
+//        for (int j=0; j<inputW; j++) {
+//            image.at<Vec3d>(i, j)[0] -= imageMean[0];
+//            image.at<Vec3d>(i, j)[1] -= imageMean[1];
+//            image.at<Vec3d>(i, j)[2] -= imageMean[2];
+//        }
+//    }
+//    imshow("image", image);
+//    waitKey();
+//    destroyAllWindows();
+    unsigned vol = inputH * inputW * inputC;
+    auto* fileDataChar = (uchar *) malloc(mParams.batchSize * inputC * inputW * inputH * sizeof(uchar));
+    fileDataChar = image.data;
+    auto* hostDataBuff = static_cast<float*>(buffers.getHostBuffer(mParams.inputTensorNames[0]));
+    for (int i = 0; i < vol; ++i) {
+        hostDataBuff[i] = (float)fileDataChar[i] * 1.0;
+    }
+    cout<< "hello" <<endl;
 }
 
-void RetinaFace::verifyOutput(const samplesCommon::BufferManager &buffer) {
+float* RetinaFace::verifyOutput(const samplesCommon::BufferManager &buffer) {
+    int output1Size = mOutput1Dims.d[1];
+    int output2Size = mOutput2Dims.d[2];
+    int output3Size = mOutput3Dims.d[3];
+    auto* output1 = static_cast<float*>(buffer.getHostBuffer(mParams.outputTensorNames[0]));
+    auto* output2 = static_cast<float*>(buffer.getHostBuffer(mParams.outputTensorNames[1]));
+    auto* output3 = static_cast<float*>(buffer.getHostBuffer(mParams.outputTensorNames[2]));
+    cout << mParams.outputTensorNames[0] <<endl;
+    cout << mParams.outputTensorNames[1] <<endl;
+    cout << mParams.outputTensorNames[2] <<endl;
+    cout << output1Size <<endl;
+    cout << output2Size <<endl;
+    cout << output3Size <<endl;
+
 
 }
 
@@ -149,7 +184,7 @@ void RetinaFace::build() {
     mOutput1Dims = network->getOutput(0)->getDimensions();
     mOutput2Dims = network->getOutput(1)->getDimensions();
     mOutput3Dims = network->getOutput(2)->getDimensions();
-
+    cout << "checkOutput" << endl;
 }
 
 void RetinaFace::infer() {
@@ -157,6 +192,19 @@ void RetinaFace::infer() {
     auto context = SampleUniquePtr<nvinfer1::IExecutionContext>(mEngine->createExecutionContext());
     assert(mParams.inputTensorNames.size() == 1);
     processInput(buffers);
+
+    cout << "hello" << endl;
+
+    buffers.copyInputToDevice();
+
+    bool status = context->executeV2(buffers.getDeviceBindings().data());
+    if (!status) {
+        gLogError << "infer出错" <<endl;
+    }
+
+    buffers.copyOutputToHost();
+
+    verifyOutput(buffers);
 }
 
 

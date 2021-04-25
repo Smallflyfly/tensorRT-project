@@ -5,8 +5,28 @@
 #ifndef YOLO5_COMMON_HPP
 #define YOLO5_COMMON_HPP
 
-#endif //YOLO5_COMMON_HPP
+#include <fstream>
+#include <map>
+#include <sstream>
+#include <vector>
+#include <opencv2/opencv.hpp>
+#include <dirent.h>
+#include "NvInfer.h"
 #include "yololayer.h"
+
+
+#define CHECK(status) \
+    do\
+    {\
+        auto ret = (status);\
+        if (ret != 0)\
+        {\
+            std::cerr << "Cuda failure: " << ret << std::endl;\
+            abort();\
+        }\
+    } while (0)
+
+using namespace nvinfer1;
 
 IScaleLayer* addBatchNorm2d(INetworkDefinition* network, std::map<std::string, Weights>& weightMap, ITensor& input, std::string layerName, float eps) {
     float *gamma = (float *)weightMap[layerName + ".weight"].values;
@@ -104,7 +124,18 @@ ILayer* bottleneckCSP(INetworkDefinition *network, std::map<std::string, Weights
     auto cv3 = network->addConvolutionNd(*y1, c_, DimsHW{1, 1}, weightMap[layerName + ".cv3.weight"], emptywt);
 
     ITensor* inputTensors[] = {cv3->getOutput(0), cv2->getOutput(0)};
-    auto cat = network->addConcatenation(inputTensors, 2);
+    auto cat = netwo#define CHECK(status) \
+    do\
+    {\
+        auto ret = (status);\
+        if (ret != 0)\
+        {\
+            std::cerr << "Cuda failure: " << ret << std::endl;\
+            abort();\
+        }\
+    } while (0)
+
+using namespace nvinfer1;rk->addConcatenation(inputTensors, 2);
 
     IScaleLayer* bn = addBatchNorm2d(network, weightMap, *cat->getOutput(0), layerName+".bn", 1e-5);
     auto leakReLu = network->addActivation(*bn->getOutput(0), ActivationType::kLEAKY_RELU);
@@ -137,3 +168,5 @@ ILayer* SPP(INetworkDefinition *network, std::map<std::string, Weights>& weightM
 
     return cv2;
 }
+
+#endif //YOLO5_COMMON_HPP

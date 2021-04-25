@@ -4,23 +4,16 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "F:/AI/tensorRT-project/resnet/resnet50.cpp" "F:/AI/tensorRT-project/resnet/cmake-build-debug/CMakeFiles/resnet.dir/resnet50.cpp.obj"
+  "/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/resnet50.cpp" "/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/CMakeFiles/resnet.dir/resnet50.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include"
-  "C:/Program"
-  "../Files/NVIDIA"
-  "../GPU"
-  "../Computing"
-  "../Toolkit/CUDA/v10.2/include"
-  "D:/TensorRT-7.0.0.11/include"
-  "D:/TensorRT-7.0.0.11/samples/common/windows"
-  "D:/TensorRT-7.0.0.11/samples/common"
-  "D:/TensorRT-7.0.0.11/bin"
-  "../Toolkit/CUDA/v10.2/lib/x64"
+  "/usr/local/cuda/include"
+  "/home/TensorRT-7.2.2.3/samples/common"
+  "/home/TensorRT-7.2.2.3/include"
+  "/usr/local/include/opencv4"
   )
 
 # Targets to which this target links.

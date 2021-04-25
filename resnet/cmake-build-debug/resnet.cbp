@@ -5,108 +5,110 @@
 		<Option title="resnet"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="gcc"/>
-		<Option virtualFolders="CMake Files\;"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\..\usr\local\lib\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\;"/>
 		<Build>
 			<Target title="all">
-				<Option working_dir="F:/AI/tensorRT-project/resnet/cmake-build-debug"/>
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
-			<Target title="resnet">
-				<Option output="F:/AI/tensorRT-project/resnet/cmake-build-debug/resnet.exe" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="F:/AI/tensorRT-project/resnet/cmake-build-debug"/>
-				<Option object_output="./"/>
-				<Option type="1"/>
-				<Option compiler="gcc"/>
-				<Compiler>
-					<Add directory="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include"/>
-					<Add directory="C:/Program"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/Files/NVIDIA"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/GPU"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/Computing"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/Toolkit/CUDA/v10.2/include"/>
-					<Add directory="D:/TensorRT-7.0.0.11/include"/>
-					<Add directory="D:/TensorRT-7.0.0.11/samples/common/windows"/>
-					<Add directory="D:/TensorRT-7.0.0.11/samples/common"/>
-					<Add directory="D:/TensorRT-7.0.0.11/bin"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/Toolkit/CUDA/v10.2/lib/x64"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/backward"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include-fixed"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/../../../../x86_64-w64-mingw32/include"/>
-				</Compiler>
-				<MakeCommands>
-					<Build command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 resnet"/>
-					<CompileFile command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
-			<Target title="resnet/fast">
-				<Option output="F:/AI/tensorRT-project/resnet/cmake-build-debug/resnet.exe" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="F:/AI/tensorRT-project/resnet/cmake-build-debug"/>
-				<Option object_output="./"/>
-				<Option type="1"/>
-				<Option compiler="gcc"/>
-				<Compiler>
-					<Add directory="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include"/>
-					<Add directory="C:/Program"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/Files/NVIDIA"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/GPU"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/Computing"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/Toolkit/CUDA/v10.2/include"/>
-					<Add directory="D:/TensorRT-7.0.0.11/include"/>
-					<Add directory="D:/TensorRT-7.0.0.11/samples/common/windows"/>
-					<Add directory="D:/TensorRT-7.0.0.11/samples/common"/>
-					<Add directory="D:/TensorRT-7.0.0.11/bin"/>
-					<Add directory="F:/AI/tensorRT-project/resnet/Toolkit/CUDA/v10.2/lib/x64"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/backward"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/include-fixed"/>
-					<Add directory="D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/8.1.0/../../../../x86_64-w64-mingw32/include"/>
-				</Compiler>
-				<MakeCommands>
-					<Build command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 resnet/fast"/>
-					<CompileFile command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
-			<Target title="edit_cache">
-				<Option working_dir="F:/AI/tensorRT-project/resnet/cmake-build-debug"/>
-				<Option type="4"/>
-				<MakeCommands>
-					<Build command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
-				<Option working_dir="F:/AI/tensorRT-project/resnet/cmake-build-debug"/>
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="D:/mingw64/bin/mingw32-make.exe -f &quot;F:/AI/tensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="resnet">
+				<Option output="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/resnet" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/TensorRT-7.2.2.3/samples/common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/include"/>
+					<Add directory="/usr/local/include/opencv4"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 resnet"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="resnet/fast">
+				<Option output="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/resnet" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/home/TensorRT-7.2.2.3/samples/common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/include"/>
+					<Add directory="/usr/local/include/opencv4"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 resnet/fast"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="F:/AI/tensorRT-project/resnet/resnet50.cpp">
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/resnet50.cpp">
 			<Option target="resnet"/>
 		</Unit>
-		<Unit filename="F:/AI/tensorRT-project/resnet/CMakeLists.txt">
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/../../../../../../usr/local/lib/cmake/opencv4/OpenCVConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/../../../../../../usr/local/lib/cmake/opencv4/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/../../../../../../usr/local/lib/cmake/opencv4/OpenCVModules-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/../../../../../../usr/local/lib/cmake/opencv4/OpenCVModules.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
 		</Unit>
 	</Project>
 </CodeBlocks_project_file>

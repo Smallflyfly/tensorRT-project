@@ -5,7 +5,7 @@
 		<Option title="test"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="gcc"/>
-		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\home\;CMake Files\..\..\..\..\..\..\home\smallflyfly\;CMake Files\..\..\..\..\..\..\home\smallflyfly\anaconda3\;CMake Files\..\..\..\..\..\..\home\smallflyfly\anaconda3\share\;CMake Files\..\..\..\..\..\..\home\smallflyfly\anaconda3\share\OpenCV\;"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\..\usr\local\lib\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\;"/>
 		<Build>
 			<Target title="all">
 				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/cmake-build-debug"/>
@@ -44,8 +44,7 @@
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="/home/smallflyfly/anaconda3/include/opencv"/>
-					<Add directory="/home/smallflyfly/anaconda3/include"/>
+					<Add directory="/usr/local/include/opencv4"/>
 					<Add directory="/usr/include/c++/7"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
 					<Add directory="/usr/include/c++/7/backward"/>
@@ -69,8 +68,7 @@
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="/home/smallflyfly/anaconda3/include/opencv"/>
-					<Add directory="/home/smallflyfly/anaconda3/include"/>
+					<Add directory="/usr/local/include/opencv4"/>
 					<Add directory="/usr/include/c++/7"/>
 					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
 					<Add directory="/usr/include/c++/7/backward"/>
@@ -94,17 +92,17 @@
 		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
-		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/../../../../../../home/smallflyfly/anaconda3/share/OpenCV/OpenCVConfig-version.cmake">
-			<Option virtualFolder="CMake Files\..\..\..\..\..\..\home\smallflyfly\anaconda3\share\OpenCV\"/>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/../../../../../../usr/local/lib/cmake/opencv4/OpenCVConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
 		</Unit>
-		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/../../../../../../home/smallflyfly/anaconda3/share/OpenCV/OpenCVConfig.cmake">
-			<Option virtualFolder="CMake Files\..\..\..\..\..\..\home\smallflyfly\anaconda3\share\OpenCV\"/>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/../../../../../../usr/local/lib/cmake/opencv4/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
 		</Unit>
-		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/../../../../../../home/smallflyfly/anaconda3/share/OpenCV/OpenCVModules-release.cmake">
-			<Option virtualFolder="CMake Files\..\..\..\..\..\..\home\smallflyfly\anaconda3\share\OpenCV\"/>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/../../../../../../usr/local/lib/cmake/opencv4/OpenCVModules-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
 		</Unit>
-		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/../../../../../../home/smallflyfly/anaconda3/share/OpenCV/OpenCVModules.cmake">
-			<Option virtualFolder="CMake Files\..\..\..\..\..\..\home\smallflyfly\anaconda3\share\OpenCV\"/>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/test/../../../../../../usr/local/lib/cmake/opencv4/OpenCVModules.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
 		</Unit>
 	</Project>
 </CodeBlocks_project_file>

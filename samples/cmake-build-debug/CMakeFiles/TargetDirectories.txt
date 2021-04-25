@@ -1,0 +1,3 @@
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/samples/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/samples/cmake-build-debug/CMakeFiles/edit_cache.dir
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/samples/cmake-build-debug/CMakeFiles/opencv_example.dir

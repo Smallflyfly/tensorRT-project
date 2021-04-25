@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -isystem /home/smallflyfly/anaconda3/include/opencv -isystem /home/smallflyfly/anaconda3/include
+CXX_INCLUDES = -isystem /usr/local/include/opencv4
 
 CXX_FLAGS = -g -std=gnu++14
 

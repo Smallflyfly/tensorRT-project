@@ -1,3 +1,1 @@
-D:\CMake\bin\cmake.exe -E rm -f CMakeFiles\resnet.dir/objects.a
-D:\mingw64\bin\ar.exe cr CMakeFiles\resnet.dir/objects.a @CMakeFiles\resnet.dir\objects1.rsp
-D:\mingw64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\resnet.dir/objects.a -Wl,--no-whole-archive -o resnet.exe -Wl,--out-implib,libresnet.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\resnet.dir\linklibs.rsp
+/usr/bin/c++ -g CMakeFiles/resnet.dir/resnet50.cpp.o -o resnet  -Wl,-rpath,/home/TensorRT-7.2.2.3/lib /home/TensorRT-7.2.2.3/lib/libmyelin.so /home/TensorRT-7.2.2.3/lib/libnvcaffe_parser.so /home/TensorRT-7.2.2.3/lib/libnvinfer.so /home/TensorRT-7.2.2.3/lib/libnvinfer_plugin.so /home/TensorRT-7.2.2.3/lib/libnvonnxparser.so /home/TensorRT-7.2.2.3/lib/libnvparsers.so /usr/local/cuda/lib64/libcudart_static.a -ldl /usr/lib/x86_64-linux-gnu/librt.so -lpthread 

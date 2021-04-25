@@ -31,10 +31,13 @@
 #define INPUT_BLOB_NAME "data"
 #define BATCH_SIZE 1
 
+#define USE_FP16
+
 static sample::Logger gLogger;
 
 static const int INPUT_W = Yolo::INPUT_W;
 static const int INPUT_H = Yolo::INPUT_H;
+const char* OUTPUT_BLOB_NAME = "prob";
 
 using namespace std;
 
@@ -134,8 +137,33 @@ ICudaEngine *createEngine_s(unsigned int batchSize, IBuilder *builder, IBuilderC
     IConvolutionLayer *det2 = network->addConvolutionNd(*bottleneck_csp23->getOutput(0), 3 * (Yolo::CLASS_NUM + 5), DimsHW{1, 1},
                                                         weightMap["model.24.m.2.weight"], weightMap["model.24.m.2.bias"]);
 
+    auto creator = getPluginRegistry()->getPluginCreator("YoloLayer_TRT", "1");
+    const PluginFieldCollection *pluginData = creator->getFieldNames();
+    IPluginV2 *pluginObj = creator->createPlugin("yololayer", pluginData);
+    ITensor* inputTensor_yolo[] = {det2->getOutput(0), det1->getOutput(0), det0->getOutput(0)};
+    auto yolo = network->addPluginV2(inputTensor_yolo, 3, *pluginObj);
+    yolo->getOutput(0)->setName(OUTPUT_BLOB_NAME);
+    network->markOutput(*yolo->getOutput(0));
 
-    return nullptr;
+    // build engine
+    builder->setMaxBatchSize(batchSize);
+    config->setMaxWorkspaceSize(32 * (1 << 20));
+#ifdef USE_FP16
+    config->setFlag(BuilderFlag::kFP16);
+#endif
+    cout << "Building engine, wait for a while " << endl;
+    ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
+    cout << "Build engine successfully!" << endl;
+
+    // destroy network dont need network anymore
+    network->destroy();
+
+    // Release hots memory
+    for (auto &mem : weightMap) {
+        free((void*) (mem.second.values));
+    }
+
+    return engine;
 }
 
 std::map<std::string, Weights> loadTrainedWeights(const string& weightFile) {
