@@ -1,0 +1,6 @@
+*.pth
+weight/
+*.onnx
+*.wts
+cmake-build-debug/
+.idea/
