@@ -106,6 +106,21 @@ resnet: /home/TensorRT-7.2.2.3/lib/libnvonnxparser.so
 resnet: /home/TensorRT-7.2.2.3/lib/libnvparsers.so
 resnet: /usr/local/cuda/lib64/libcudart_static.a
 resnet: /usr/lib/x86_64-linux-gnu/librt.so
+resnet: /usr/local/lib/libopencv_dnn.so.4.3.0
+resnet: /usr/local/lib/libopencv_gapi.so.4.3.0
+resnet: /usr/local/lib/libopencv_highgui.so.4.3.0
+resnet: /usr/local/lib/libopencv_ml.so.4.3.0
+resnet: /usr/local/lib/libopencv_objdetect.so.4.3.0
+resnet: /usr/local/lib/libopencv_photo.so.4.3.0
+resnet: /usr/local/lib/libopencv_stitching.so.4.3.0
+resnet: /usr/local/lib/libopencv_video.so.4.3.0
+resnet: /usr/local/lib/libopencv_videoio.so.4.3.0
+resnet: /usr/local/lib/libopencv_imgcodecs.so.4.3.0
+resnet: /usr/local/lib/libopencv_calib3d.so.4.3.0
+resnet: /usr/local/lib/libopencv_features2d.so.4.3.0
+resnet: /usr/local/lib/libopencv_flann.so.4.3.0
+resnet: /usr/local/lib/libopencv_imgproc.so.4.3.0
+resnet: /usr/local/lib/libopencv_core.so.4.3.0
 resnet: CMakeFiles/resnet.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable resnet"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/resnet.dir/link.txt --verbose=$(VERBOSE)

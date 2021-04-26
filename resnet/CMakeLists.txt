@@ -24,9 +24,11 @@ set(TENSORRT_LIB_PATH /home/TensorRT-7.2.2.3/lib)
 file(GLOB LIBS ${TENSORRT_LIB_PATH}/*.so)
 
 find_package(OpenCV)
+find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 target_link_libraries(resnet ${LIBS} ${CUDA_LIBRARIES})
+target_link_libraries(resnet ${OpenCV_LIBS} ${TENSORRT_LIB})
 
 
 

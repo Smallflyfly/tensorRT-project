@@ -13,6 +13,11 @@
 #include <chrono>
 #include <cmath>
 
+#include "opencv2/core.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/videoio.hpp"
+
 #define CHECK(status) \
     do { \
         auto ret = (status); \
@@ -165,6 +170,11 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
     return relu3;
 }
 
+// softmax layer
+ILayer* reshapeSoftmax(INetworkDefinition *network, ITensor &input) {
+
+}
+
 // create engine
 ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder *builder, IBuilderConfig* config, DataType dtype) {
 //    const auto explictBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
@@ -228,9 +238,17 @@ ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder *builder, IBuilder
     IFullyConnectedLayer *fc = network->addFullyConnected(*pool4->getOutput(0), 2, weightMap["fc.weight"], weightMap["fc.bias"]);
     assert(fc);
 
+    ISoftMaxLayer *prob = network->addSoftMax(*fc->getOutput(0));
+    assert(prob);
+
     fc->getOutput(0)->setName(OUTPUT_BLOB_NAME);
     cout << "set name out " << OUTPUT_BLOB_NAME << endl;
     network->markOutput(*fc->getOutput(0));
+
+//    prob->getOutput(0)->setName(OUTPUT_BLOB_NAME);
+//    cout << "set name out " << OUTPUT_BLOB_NAME << endl;
+//    network->markOutput(*prob->getOutput(0));
+    ILayer *softMaxLay = reshapeSoftmax();
 
     // build engine
     builder->setMaxBatchSize(maxBatchSize);
@@ -348,6 +366,31 @@ int main(int argc, char** argv) {
     for (float & i : data) {
         i = 1.0;
     }
+
+    cv::Mat im = cv::imread("./test1.jpg");
+    if (im.empty()) {
+        cout << "image file is none!" << endl;
+    }
+    cv::resize(im, im, cv::Size(256, 256), cv::INTER_LINEAR);
+
+//    cv::imshow("image1", im);
+
+//    cvtColor(im, im, cv::COLOR_BGR2RGB);
+
+//    cv::imshow("image2", im);
+
+//    cv::waitKey();
+//    cv::destroyAllWindows();
+
+    cv::normalize(im, im, 0.0, 255.0, cv::NORM_MINMAX);
+    unsigned vol = INPUT_H * INPUT_W * 3;
+    auto* fileDataChar = (uchar *) malloc(1 * 3 * INPUT_H * INPUT_W * sizeof(uchar));
+    fileDataChar = im.data;
+    for (int i = 0; i < vol; ++i) {
+        data[i] = (float)fileDataChar[i] * 1.0;
+    }
+
+
     IRuntime *runtime = createInferRuntime(gLogger);
     assert(runtime != nullptr);
 
@@ -358,6 +401,8 @@ int main(int argc, char** argv) {
     assert(context != nullptr);
 
     delete[] trtModelStream;
+
+
 
     // run inference
     static float prob[OUTPUT_SIZE];

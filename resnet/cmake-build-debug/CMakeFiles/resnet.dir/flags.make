@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/usr/local/cuda/include -I/home/TensorRT-7.2.2.3/samples/common -I/home/TensorRT-7.2.2.3/include -I/usr/local/include/opencv4
+CXX_INCLUDES = -I/usr/local/cuda/include -I/home/TensorRT-7.2.2.3/samples/common -I/home/TensorRT-7.2.2.3/include -isystem /usr/local/include/opencv4
 
 CXX_FLAGS = -g -std=gnu++14
 
