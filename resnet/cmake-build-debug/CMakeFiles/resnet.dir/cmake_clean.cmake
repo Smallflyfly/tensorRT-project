@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/resnet.dir/resnet50.cpp.o"
-  "resnet"
+  "CMakeFiles/resnet.dir/resnet50.cpp.obj"
+  "libresnet.dll.a"
+  "resnet.exe"
+  "resnet.exe.manifest"
   "resnet.pdb"
 )
 

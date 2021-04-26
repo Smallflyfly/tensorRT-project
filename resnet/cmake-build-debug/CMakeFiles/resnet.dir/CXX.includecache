@@ -1,0 +1,120 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/builtin_types.h
+device_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/device_types.h
+driver_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/driver_types.h
+surface_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/surface_types.h
+texture_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/texture_types.h
+vector_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/vector_types.h
+
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/crt/host_defines.h
+
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/cuda_device_runtime_api.h
+driver_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/driver_types.h
+crt/host_defines.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/crt/host_defines.h
+
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/cuda_runtime_api.h
+crt/host_defines.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/crt/host_defines.h
+builtin_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/builtin_types.h
+cuda_device_runtime_api.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/cuda_device_runtime_api.h
+
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/device_types.h
+crt/host_defines.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/crt/host_defines.h
+
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/driver_types.h
+crt/host_defines.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/crt/host_defines.h
+vector_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/vector_types.h
+limits.h
+-
+stddef.h
+-
+
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/surface_types.h
+driver_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/driver_types.h
+
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/texture_types.h
+driver_types.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/driver_types.h
+
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/vector_types.h
+crt/host_defines.h
+C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include/crt/host_defines.h
+
+D:/TensorRT-7.0.0.11/include/NvInfer.h
+NvInferRuntime.h
+D:/TensorRT-7.0.0.11/include/NvInferRuntime.h
+
+D:/TensorRT-7.0.0.11/include/NvInferRuntime.h
+NvInferRuntimeCommon.h
+D:/TensorRT-7.0.0.11/include/NvInferRuntimeCommon.h
+
+D:/TensorRT-7.0.0.11/include/NvInferRuntimeCommon.h
+cstddef
+-
+cstdint
+-
+NvInferVersion.h
+D:/TensorRT-7.0.0.11/include/NvInferVersion.h
+
+D:/TensorRT-7.0.0.11/include/NvInferVersion.h
+
+F:/AI/tensorRT-project/resnet/logging.h
+NvInferRuntimeCommon.h
+F:/AI/tensorRT-project/resnet/NvInferRuntimeCommon.h
+cassert
+-
+ctime
+-
+iomanip
+-
+iostream
+-
+ostream
+-
+sstream
+-
+string
+-
+
+F:/AI/tensorRT-project/resnet/resnet50.cpp
+NvInfer.h
+F:/AI/tensorRT-project/resnet/NvInfer.h
+cuda_runtime_api.h
+F:/AI/tensorRT-project/resnet/cuda_runtime_api.h
+logging.h
+F:/AI/tensorRT-project/resnet/logging.h
+fstream
+-
+iostream
+-
+map
+-
+sstream
+-
+vector
+-
+chrono
+-
+cmath
+-
+

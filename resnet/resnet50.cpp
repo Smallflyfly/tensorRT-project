@@ -13,15 +13,27 @@
 #include <chrono>
 #include <cmath>
 
+#define CHECK(status) \
+    do { \
+        auto ret = (status); \
+        if (ret != 0) \
+        { \
+            cerr << "Cuda failure:" << ret << endl; \
+            abort(); \
+        } \
+    } while(0)
 
 using namespace std;
 using namespace nvinfer1;
-using namespace sample;
+//using namespace sample;
 
-static sample::Logger gLogger;
+//static sample::Logger gLogger;
+static Logger gLogger;
 static const char* INPUT_BLOB_NAME = "input";
+static const char* OUTPUT_BLOB_NAME = "output";
 static const int INPUT_H = 256;
 static const int INPUT_W = 256;
+static const int OUTPUT_SIZE = 2;
 
 
 map<string, Weights> loadWeight(const string& weightFile) {
@@ -39,7 +51,7 @@ map<string, Weights> loadWeight(const string& weightFile) {
 
     while (count --) {
         Weights weight{DataType::kFLOAT, nullptr, 0};
-        u_int32_t size;
+        int size;
         // read name and type of blob
         string name;
         input >> name >> dec >> size;
@@ -108,7 +120,7 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
 
     IConvolutionLayer *conv2 = network->addConvolutionNd(*relu1->getOutput(0), 64, DimsHW{3, 3}, weightMap[layerName + "conv2.weight"], wtempty);
     assert(conv2);
-    conv2->setStrideNd(DimsHW{1, 1});
+    conv2->setStrideNd(DimsHW{stride, stride});
     conv2->setPaddingNd(DimsHW{1, 1});
 
     IScaleLayer *bn2 = addBN2d(network, weightMap, *conv2->getOutput(0), layerName + "bn2", 1e-5);
@@ -117,7 +129,7 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
     IActivationLayer *relu2 = network->addActivation(*bn2->getOutput(0), ActivationType::kRELU);
     assert(relu2);
 
-    IConvolutionLayer *conv3 = network->addConvolutionNd(*relu2->getOutput(0), 64, DimsHW{1, 1}, weightMap[layerName + "conv3.weight"], wtempty);
+    IConvolutionLayer *conv3 = network->addConvolutionNd(*relu2->getOutput(0), outCh * 4, DimsHW{1, 1}, weightMap[layerName + "conv3.weight"], wtempty);
     assert(conv3);
     conv3->setStrideNd(DimsHW{1, 1});
     conv3->setPaddingNd(DimsHW{0, 0});
@@ -125,7 +137,27 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
     IScaleLayer *bn3 = addBN2d(network, weightMap, *conv3->getOutput(0), "bn3", 1e-5);
     assert(bn3);
 
+    IElementWiseLayer *ew1;
 
+    if (stride != 1 || inCh != outCh * 4) {
+        IConvolutionLayer *conv4 = network->addConvolutionNd(*bn3->getOutput(0), outCh * 4, DimsHW{1, 1}, weightMap[layerName + "downsample.0.weight"], wtempty);
+        assert(conv4);
+        conv4->setStrideNd(DimsHW{stride, stride});
+
+        IScaleLayer *bn4 = addBN2d(network, weightMap, *conv4->getOutput(0), layerName + "downsample.1", 1e-5);
+        assert(bn4);
+
+        ew1 = network->addElementWise(*bn4->getOutput(0), *bn3->getOutput(0), ElementWiseOperation::kSUM);
+        assert(ew1);
+    } else {
+        ew1 = network->addElementWise(input, *bn3->getOutput(0), ElementWiseOperation::kSUM);
+        assert(ew1);
+    }
+
+    IActivationLayer *relu3 = network->addActivation(*ew1->getOutput(0), ActivationType::kRELU);
+    assert(relu3);
+
+    return relu3;
 }
 
 // create engine
@@ -156,9 +188,60 @@ ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder *builder, IBuilder
     pool1->setStrideNd(DimsHW{2, 2});
     pool1->setPaddingNd(DimsHW{1, 1});
 
-    IActivationLayer *x = bottleneck(network, weightMap, *pool1->getOutput(0), 64, 64, "layer1.0.");
+    // layers [3, 4, 6, 3]
+    IActivationLayer *x;
+    // layer1 output channel size
+    x = bottleneck(network, weightMap, *pool1->getOutput(0), 64, 64, 1, "layer1.0.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 64 * 4, 64, 1, " layer1.1.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 64 * 4, 64, 1, " layer1.2.");
 
+    // layer2 output channel size
+    x = bottleneck(network, weightMap, *x->getOutput(0), 64 * 4, 128, 2, "layer2.0.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 128 * 4, 128, 1, "layer2.1.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 128 * 4, 128, 1, "layer2.2.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 128 * 4, 128, 1, "layer2.3.");
 
+    // layer3
+    x = bottleneck(network, weightMap, *x->getOutput(0), 128 * 4, 256, 2, "layer3.0.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.1.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.2.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.3.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.4.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.5.");
+
+    // layer4
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 512, 2, "layer4.0.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512 * 4, 512, 2, "layer4.1.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512 * 4, 512, 2, "layer4.2.");
+
+    // pool
+    IPoolingLayer *pool4 = network->addPoolingNd(*x->getOutput(0), PoolingType::kAVERAGE, DimsHW{7, 7});
+    assert(pool4);
+    pool4->setStrideNd(DimsHW{1, 1});
+
+    // fc
+    IFullyConnectedLayer *fc = network->addFullyConnected(*pool4->getOutput(0), 2, weightMap["fc.weight"], weightMap["fc.bias"]);
+    assert(fc);
+
+    fc->getOutput(0)->setName(OUTPUT_BLOB_NAME);
+    cout << "set name out " << OUTPUT_BLOB_NAME << endl;
+    network->markOutput(*fc->getOutput(0));
+
+    // build engine
+    builder->setMaxBatchSize(maxBatchSize);
+    config->setMaxWorkspaceSize(1<<20);
+    ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
+    assert(engine);
+    cout << "engine build" << endl;
+
+    // destroy network
+    network->destroy();
+    // Release host memeory
+    for (auto& mem : weightMap) {
+        free((void *) mem.second.values);
+    }
+
+    return engine;
 
 }
 
@@ -170,11 +253,53 @@ void APIToModel(unsigned int maxBatchSize, IHostMemory** modelStream) {
 
     //create engine
     ICudaEngine* engine = createEngine(maxBatchSize, builder, config, DataType::kFLOAT);
+    assert(engine != nullptr);
+
+    // Serialize the engine
+    (*modelStream) = engine->serialize();
+
+    // destroy everything
+    engine->destroy();
+    builder->destroy();
+    config->destroy();
+}
+
+void doInference(IExecutionContext &context, float *input, float *output, int batchSize) {
+    const ICudaEngine& engine = context.getEngine();
+
+    // pointers to input and output device buffers to pass to engine
+    // engine requires exactly IEngine::getNbBindings() number of buffers.
+    assert(engine.getNbBindings() == 2);
+    void* buffers[2];
+
+    // according to input name and output name to bind buffers
+    // indices are guaranteed to be less than IEngine::getNbBindings()
+    const int inputIndex = engine.getBindingIndex(INPUT_BLOB_NAME);
+    const int outputIndex = engine.getBindingIndex(OUTPUT_BLOB_NAME);
+
+    // create GPU buffers on device
+    CHECK(cudaMalloc(&buffers[inputIndex], batchSize * 3 * INPUT_H * INPUT_W * sizeof(float)));
+    CHECK(cudaMalloc(&buffers[outputIndex], batchSize * OUTPUT_SIZE * sizeof(float)));
+
+    // create steam
+    cudaStream_t  stream;
+    CHECK(cudaStreamCreate(&stream));
+
+    // DMA input batch data to device infer on the batch asynchronously and DMA output back to host
+    CHECK(cudaMemcpyAsync(buffers[inputIndex], input, batchSize * 3 * INPUT_H * INPUT_W * sizeof(float), cudaMemcpyHostToDevice, stream));
+    context.enqueue(batchSize, buffers, stream, nullptr);
+    CHECK(cudaMemcpyAsync(output, buffers[outputIndex], batchSize * OUTPUT_SIZE * sizeof(float), cudaMemcpyDeviceToHost, stream));
+    cudaStreamSynchronize(stream);
+
+    // realease stream and buffers
+    cudaStreamDestroy(stream);
+    CHECK(cudaFree(buffers[inputIndex]));
+    CHECK(cudaFree(buffers[outputIndex]));
 }
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        cerr << "arguments not right" <<endl;
+        cerr << "arguments not right" << endl;
     }
 
     // create a model using the API directly and serialize it to a stream
@@ -184,5 +309,68 @@ int main(int argc, char** argv) {
     if (string(argv[1]) == "-s") {
         IHostMemory* modelStream{nullptr};
         APIToModel(1, &modelStream);
+        assert(modelStream != nullptr);
+        ofstream p("resnet50 engine", ios::binary);
+        if (!p) {
+            cerr << "engine file error" << endl;
+            return -1;
+        }
+        p.write(reinterpret_cast<const char*>(modelStream->data()), modelStream->size());
+
+        modelStream->destroy();
+        return 0;
+    } else if (string(argv[1]) == "-d") {
+        ifstream file("resnet50.engine", ios::binary);
+        if (file.good()) {
+            // 基地址为文件结束处，偏移地址为0，于是指针定位在文件结束处
+            file.seekg(0, file.end);
+            // tellg()函数不需要带参数，它返回当前定位指针的位置，也代表着输入流的大小。
+            size = file.tellg();
+            // //基地址为文件头，偏移量为0，于是定位在文件头
+            file.seekg(0, file.beg);
+            trtModelStream = new char[size];
+            assert(trtModelStream);
+            file.read(trtModelStream, size);
+            file.close();
+        } else {
+            cerr << "engine file error" << endl;
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+    static float data[3 * INPUT_H * INPUT_W];
+    for (float & i : data) {
+        i = 1.0;
+    }
+    IRuntime *runtime = createInferRuntime(gLogger);
+    assert(runtime != nullptr);
+
+    ICudaEngine *engine = runtime->deserializeCudaEngine(trtModelStream, size, nullptr);
+    assert(engine != nullptr);
+
+    IExecutionContext *context = engine->createExecutionContext();
+    assert(context != nullptr);
+
+    delete[] trtModelStream;
+
+    // run inference
+    static float prob[OUTPUT_SIZE];
+    for (int i = 0; i < 100; ++i) {
+        auto start = chrono::system_clock::now();
+        doInference(*context, data, prob, 1);
+        auto end = chrono::system_clock::now();
+        cout << chrono::duration_cast<chrono::microseconds>(end - start).count() << "ms" << endl;
+    }
+
+    // free engine
+    context->destroy();
+    engine->destroy();
+    runtime->destroy();
+
+    // print output
+    cout << "Output :" << endl;
+    for (float i : prob) {
+        cout << i << endl;
     }
 }
