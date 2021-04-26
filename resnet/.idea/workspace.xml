@@ -12,13 +12,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2bfd4b34-71e7-41fc-aebf-99f1b1f2838d" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../mnist_tensorrt/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../mnist_tensorrt/.idea/mnist_tensorrt.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../mnist_tensorrt/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../mnist_tensorrt/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../mnist_tensorrt/main.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resnet50.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tensorrtx" beforeDir="false" afterPath="$PROJECT_DIR$/../tensorrtx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,22 +35,25 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
+    <property name="cidr.known.project.marker" value="true" />
+    <property name="cmake.loaded.for.project" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="RunManager">
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="resnet" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="resnet" TARGET_NAME="resnet" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="resnet" RUN_TARGET_NAME="resnet">
+    <configuration name="resnet" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="resnet" TARGET_NAME="resnet" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="resnet" RUN_TARGET_NAME="resnet">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -71,6 +68,7 @@
       <option name="presentableId" value="Default" />
       <updated>1619340597712</updated>
       <workItem from="1619340598832" duration="1573000" />
+      <workItem from="1619356471856" duration="7911000" />
     </task>
     <servers />
   </component>
@@ -87,5 +85,6 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
 </project>

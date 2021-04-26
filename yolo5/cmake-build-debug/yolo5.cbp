@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="yolo5"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\;CMake Files\..\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\..\usr\local\lib\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\;CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="yolo5">
+				<Option output="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/yolo5" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/./common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/samples/common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/include"/>
+					<Add directory="/usr/local/include/opencv4"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 yolo5"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="yolo5/fast">
+				<Option output="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/yolo5" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/./common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/samples/common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/include"/>
+					<Add directory="/usr/local/include/opencv4"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 yolo5/fast"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="myplugins">
+				<Option output="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/libmyplugins.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/./common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/samples/common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 myplugins"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="myplugins/fast">
+				<Option output="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/libmyplugins.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/cuda/include"/>
+					<Add directory="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/./common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/samples/common"/>
+					<Add directory="/home/TensorRT-7.2.2.3/include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 myplugins/fast"/>
+					<CompileFile command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j6 -f &quot;/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/CMakeFiles/myplugins.dir/myplugins_generated_yololayer.cu.o">
+			<Option target="myplugins"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/common/logger.cpp">
+			<Option target="yolo5"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/common/logger.h">
+			<Option target="yolo5"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/main.cpp">
+			<Option target="yolo5"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/yololayer.cu">
+			<Option target="myplugins"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/../../../../../../usr/local/lib/cmake/opencv4/OpenCVConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/../../../../../../usr/local/lib/cmake/opencv4/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/../../../../../../usr/local/lib/cmake/opencv4/OpenCVModules-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
+		</Unit>
+		<Unit filename="/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/../../../../../../usr/local/lib/cmake/opencv4/OpenCVModules.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\..\usr\local\lib\cmake\opencv4\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

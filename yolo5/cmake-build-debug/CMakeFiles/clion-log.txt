@@ -1,0 +1,6 @@
+/home/smallflyfly/clion-2021.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5
+“CUDA_LIBRARIES:/usr/local/cuda/lib64/libcudart_static.aThreads::Threadsdl/usr/lib/x86_64-linux-gnu/librt.so”
+“CUDA_INCLUDE_DIRS:/usr/local/cuda/include”
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug

@@ -1,0 +1,4 @@
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/CMakeFiles/edit_cache.dir
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/CMakeFiles/yolo5.dir
+/media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/yolo5/cmake-build-debug/CMakeFiles/myplugins.dir
