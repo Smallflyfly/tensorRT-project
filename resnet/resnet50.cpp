@@ -70,6 +70,11 @@ map<string, Weights> loadWeight(const string& weightFile) {
 }
 
 IScaleLayer* addBN2d(INetworkDefinition *network, map<string, Weights> weightMap, ITensor& input, const string& layerName, float eps) {
+//    if (layerName == "layer1.1.bn1") {
+//        cout << layerName << endl;
+//        cout << (float *)weightMap[layerName + ".weight"].values << endl;
+//    }
+
     float *gamma = (float *)weightMap[layerName + ".weight"].values;
     float *beta = (float *)weightMap[layerName + ".bias"].values;
     float *mean = (float *)weightMap[layerName + ".running_mean"].values;
@@ -118,7 +123,7 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
     IActivationLayer *relu1 = network->addActivation(*bn1->getOutput(0), ActivationType::kRELU);
     assert(relu1);
 
-    IConvolutionLayer *conv2 = network->addConvolutionNd(*relu1->getOutput(0), 64, DimsHW{3, 3}, weightMap[layerName + "conv2.weight"], wtempty);
+    IConvolutionLayer *conv2 = network->addConvolutionNd(*relu1->getOutput(0), outCh, DimsHW{3, 3}, weightMap[layerName + "conv2.weight"], wtempty);
     assert(conv2);
     conv2->setStrideNd(DimsHW{stride, stride});
     conv2->setPaddingNd(DimsHW{1, 1});
@@ -134,13 +139,13 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
     conv3->setStrideNd(DimsHW{1, 1});
     conv3->setPaddingNd(DimsHW{0, 0});
 
-    IScaleLayer *bn3 = addBN2d(network, weightMap, *conv3->getOutput(0), "bn3", 1e-5);
+    IScaleLayer *bn3 = addBN2d(network, weightMap, *conv3->getOutput(0), layerName + "bn3", 1e-5);
     assert(bn3);
 
     IElementWiseLayer *ew1;
 
     if (stride != 1 || inCh != outCh * 4) {
-        IConvolutionLayer *conv4 = network->addConvolutionNd(*bn3->getOutput(0), outCh * 4, DimsHW{1, 1}, weightMap[layerName + "downsample.0.weight"], wtempty);
+        IConvolutionLayer *conv4 = network->addConvolutionNd(input, outCh * 4, DimsHW{1, 1}, weightMap[layerName + "downsample.0.weight"], wtempty);
         assert(conv4);
         conv4->setStrideNd(DimsHW{stride, stride});
 
@@ -162,9 +167,9 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
 
 // create engine
 ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder *builder, IBuilderConfig* config, DataType dtype) {
-    const auto explictBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
-    INetworkDefinition* network = builder->createNetworkV2(explictBatch);
-    ITensor* data = network->addInput(INPUT_BLOB_NAME, DataType::kFLOAT, Dims3{3, INPUT_H, INPUT_W});
+//    const auto explictBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+    INetworkDefinition* network = builder->createNetworkV2(0U);
+    ITensor* data = network->addInput(INPUT_BLOB_NAME, dtype, Dims3{3, INPUT_H, INPUT_W});
     assert(data);
 
     map<string, Weights> weightMap = loadWeight("resnet50.wts");
@@ -192,32 +197,32 @@ ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder *builder, IBuilder
     IActivationLayer *x;
     // layer1 output channel size
     x = bottleneck(network, weightMap, *pool1->getOutput(0), 64, 64, 1, "layer1.0.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 64 * 4, 64, 1, " layer1.1.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 64 * 4, 64, 1, " layer1.2.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256, 64, 1, "layer1.1.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256, 64, 1, "layer1.2.");
 
     // layer2 output channel size
-    x = bottleneck(network, weightMap, *x->getOutput(0), 64 * 4, 128, 2, "layer2.0.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 128 * 4, 128, 1, "layer2.1.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 128 * 4, 128, 1, "layer2.2.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 128 * 4, 128, 1, "layer2.3.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256, 128, 2, "layer2.0.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 128, 1, "layer2.1.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 128, 1, "layer2.2.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 128, 1, "layer2.3.");
 
     // layer3
-    x = bottleneck(network, weightMap, *x->getOutput(0), 128 * 4, 256, 2, "layer3.0.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.1.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.2.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.3.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.4.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 256, 2, "layer3.5.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 256, 2, "layer3.0.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "layer3.1.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "layer3.2.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "layer3.3.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "layer3.4.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "layer3.5.");
 
     // layer4
-    x = bottleneck(network, weightMap, *x->getOutput(0), 256 * 4, 512, 2, "layer4.0.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 512 * 4, 512, 2, "layer4.1.");
-    x = bottleneck(network, weightMap, *x->getOutput(0), 512 * 4, 512, 2, "layer4.2.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 512, 2, "layer4.0.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 2048, 512, 1, "layer4.1.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 2048, 512, 1, "layer4.2.");
 
     // pool
     IPoolingLayer *pool4 = network->addPoolingNd(*x->getOutput(0), PoolingType::kAVERAGE, DimsHW{7, 7});
     assert(pool4);
-    pool4->setStrideNd(DimsHW{1, 1});
+    pool4->setStrideNd(DimsHW{3, 3});
 
     // fc
     IFullyConnectedLayer *fc = network->addFullyConnected(*pool4->getOutput(0), 2, weightMap["fc.weight"], weightMap["fc.bias"]);
@@ -310,7 +315,7 @@ int main(int argc, char** argv) {
         IHostMemory* modelStream{nullptr};
         APIToModel(1, &modelStream);
         assert(modelStream != nullptr);
-        ofstream p("resnet50 engine", ios::binary);
+        ofstream p("resnet50.engine", ios::binary);
         if (!p) {
             cerr << "engine file error" << endl;
             return -1;
@@ -360,7 +365,7 @@ int main(int argc, char** argv) {
         auto start = chrono::system_clock::now();
         doInference(*context, data, prob, 1);
         auto end = chrono::system_clock::now();
-        cout << chrono::duration_cast<chrono::microseconds>(end - start).count() << "ms" << endl;
+        cout << chrono::duration_cast<chrono::milliseconds>(end - start).count() << "ms" << endl;
     }
 
     // free engine

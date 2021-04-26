@@ -1,11 +1,6 @@
-D:\CMake\bin\cmake.exe -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - MinGW Makefiles" F:\AI\tensorRT-project\resnet
---     libraries: C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/lib/x64/cudart_static.lib
---     include path: C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/include
--- OpenCV ARCH: x64
--- OpenCV RUNTIME: mingw
--- OpenCV STATIC: OFF
--- Found OpenCV 3.4.11 in D:/opencv/build/install/x64/mingw/lib
--- You might need to add D:/opencv/build/install/x64/mingw/bin to your PATH to be able to run your applications.
+/home/smallflyfly/clion-2021.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet
+--     libraries: /usr/local/cuda/lib64/libcudart_static.a;Threads::Threads;dl;/usr/lib/x86_64-linux-gnu/librt.so
+--     include path: /usr/local/cuda/include
 -- Configuring done
 -- Generating done
--- Build files have been written to: F:/AI/tensorRT-project/resnet/cmake-build-debug
+-- Build files have been written to: /media/smallflyfly/DATA_MANAGER/AI/TensorRT-project/resnet/cmake-build-debug
