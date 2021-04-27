@@ -103,12 +103,65 @@ IScaleLayer* addBN(INetworkDefinition *network, map<string, Weights> &weightMap,
 IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& weightMap, ITensor &input, int inCh, int outCh, int stride, const string &layerName) {
     Weights emptyWt{DataType::kFLOAT, nullptr, 0};
 
-    IConvolutionLayer *conv1 = network->addConvolutionNd(input, 64, DimsHW{1, 1}, weightMap[layerName + ".conv1.weight"], emptyWt);
+    IConvolutionLayer *conv1 = network->addConvolutionNd(input, outCh, DimsHW{1, 1}, weightMap[layerName + ".conv1.weight"], emptyWt);
     assert(conv1);
+    conv1->setStrideNd(DimsHW{1, 1});
 
     IScaleLayer *bn1 = addBN(network, weightMap, *conv1->getOutput(0), layerName + ".bn1", 1e-5);
+    IActivationLayer *relu1 = network->addActivation(*bn1->getOutput(0), ActivationType::kRELU);
+    assert(relu1);
 
-    IActivationLayer *relu1 =
+    IConvolutionLayer *conv2 = network->addConvolutionNd(*relu1->getOutput(0), outCh, DimsHW{3, 3}, weightMap[layerName + ".conv2.weight"], emptyWt);
+    assert(conv2);
+    conv2->setStrideNd(DimsHW{stride, stride});
+    conv2->setPaddingNd(DimsHW{1, 1});
+
+    IScaleLayer *bn2 = addBN(network, weightMap, *conv2->getOutput(0), layerName + ".bn2", 1e-5);
+    IActivationLayer *relu2 = network->addActivation(*bn2->getOutput(0), ActivationType::kRELU);
+    assert(relu2);
+
+    IConvolutionLayer *conv3 = network->addConvolutionNd(*relu2->getOutput(0), outCh * 4, DimsHW{1, 1}, weightMap[layerName + ".conv3.weight"], emptyWt);
+    assert(conv3);
+    conv3->setStrideNd(DimsHW{1, 1});
+
+    IScaleLayer *bn3 = addBN(network, weightMap, *conv3->getOutput(0), layerName + ".bn3", 1e-5);
+
+    IElementWiseLayer *ew1;
+    if (stride != 1 || inCh != outCh * 4) {
+        // downsample
+        IConvolutionLayer *conv4 = network->addConvolutionNd(*bn3->getOutput(0), outCh * 4, DimsHW{1, 1}, weightMap[layerName + ".downsample.0.weight"], emptyWt);
+        assert(conv4);
+        conv4->setStrideNd(DimsHW{stride, stride});
+
+        IScaleLayer *bn4 = addBN(network, weightMap, *conv4->getOutput(0), layerName + ".downsample.1", 1e-5);
+
+        ew1 = network->addElementWise(*bn4->getOutput(0), input, ElementWiseOperation::kSUM);
+    } else {
+        ew1 = network->addElementWise(*bn3->getOutput(0), input, ElementWiseOperation::kSUM);
+    }
+
+    IActivationLayer *relu3 = network->addActivation(*ew1->getOutput(0), ActivationType::kRELU);
+    assert(relu3);
+
+    return relu3;
+}
+
+ILayer* conv_bn_relu(INetworkDefinition *network, map<string, Weights> &weightMap, ITensor &input, int outCh, int ksize, int stride, int padding, bool useRelu, const string &layerName) {
+    Weights emptyWt{DataType::kFLOAT, nullptr, 0};
+
+    IConvolutionLayer *conv = network->addConvolutionNd(input, outCh, DimsHW{ksize, ksize}, weightMap[layerName + ".weight"], emptyWt);
+    assert(conv);
+    conv->setStrideNd(DimsHW{stride, stride});
+    conv->setPaddingNd(DimsHW{padding, padding});
+
+    IScaleLayer *bn = addBN(network, weightMap, *conv->getOutput(0), layerName + ".1", 1e-5);
+
+    if (!useRelu) return bn;
+
+    IActivationLayer *relu = network->addActivation(*bn->getOutput(0), ActivationType::kRELU);
+    assert(relu);
+
+    return relu;
 }
 
 
@@ -142,7 +195,51 @@ ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *c
     pool1->setPaddingNd(DimsHW{1, 1});
 
     IActivationLayer *x;
+    // blocks = [3, 4, 6, 3]
     x = bottleneck(network, weightMap, *pool1->getOutput(0), 64, 64, 1, "body.layer1.0.");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256, 64, 1, "body.layer1.1");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256, 64, 1, "body.layer1.2");
+
+    x = bottleneck(network, weightMap, *x->getOutput(0), 256, 128, 2, "body.layer2.0");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 128, 1, "body.layer2.1");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 128, 1, "body.layer2.2");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 128, 1, "body.layer2.3");
+    IActivationLayer *layer2 = x;
+
+    x = bottleneck(network, weightMap, *x->getOutput(0), 512, 256, 2, "body.layer3.0");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.1");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.2");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.3");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.4");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 256, 1, "body.layer3.5");
+    IActivationLayer *layer3 = x;
+
+    x = bottleneck(network, weightMap, *x->getOutput(0), 1024, 512, 2, "body.layer4.0");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 2048, 512, 1, "body.layer4.1");
+    x = bottleneck(network, weightMap, *x->getOutput(0), 2048, 512, 1, "body.layer4.2");
+    IActivationLayer *layer4 = x;
+
+    // FPN
+    auto output1 = conv_bn_relu(network, weightMap, *layer2->getOutput(0), 256, 1, 1, 0, true, "fpn.output1.0");
+    auto output2 = conv_bn_relu(network, weightMap, *layer3->getOutput(0), 256, 1, 1, 0, true, "fpn.output2.0");
+    auto output3 = conv_bn_relu(network, weightMap, *layer4->getOutput(0), 256, 1, 1, 0, true, "fpn.output3.0");
+
+    // up
+    float *deval = reinterpret_cast<float*>(malloc(sizeof(float) * 256 * 2 * 2));
+    for (int i = 0; i < 256 * 2 * 2; ++i) {
+        deval[i] = 1.0;
+    }
+
+    Weights deconwts{DataType::kFLOAT, deval, 256 * 2 * 2};
+    IDeconvolutionLayer *up3 = network->addDeconvolutionNd(*output3->getOutput(0), 256, DimsHW{2, 2}, deconwts, emptyWt);
+    assert(up3);
+    up3->setStrideNd(DimsHW{2, 2});
+    up3->setNbGroups(256);
+    weightMap["up3"] = deconwts;
+
+    output2 = network->addElementWise(*output2->getOutput(0), *up3->getOutput(0), ElementWiseOperation::kSUM);
+    output2 = conv_bn_relu(network, weightMap, *output2->getOutput(0), 256, 3, 1, 1, true, "fpn.merge1.0");
+
 
 
 
