@@ -171,8 +171,14 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
 }
 
 // softmax layer
-ILayer* reshapeSoftmax(INetworkDefinition *network, ITensor &input) {
+ILayer* reshapeSoftmax(INetworkDefinition *network, ITensor &input, int c) {
+    IShuffleLayer *shuffleLayer = network->addShuffle(input);
+    assert(shuffleLayer);
+    shuffleLayer->setReshapeDimensions(Dims3(1, -1, c));
 
+    Dims dim0 = shuffleLayer->getOutput(0)->getDimensions();
+
+    cout << "softmax output dims " << dim0.d[0] << " " << dim0.d[1] << " " << dim0.d[2] << " " << dim0.d[3] << endl;
 }
 
 // create engine
@@ -238,17 +244,17 @@ ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder *builder, IBuilder
     IFullyConnectedLayer *fc = network->addFullyConnected(*pool4->getOutput(0), 2, weightMap["fc.weight"], weightMap["fc.bias"]);
     assert(fc);
 
-    ISoftMaxLayer *prob = network->addSoftMax(*fc->getOutput(0));
-    assert(prob);
+//    ISoftMaxLayer *prob = network->addSoftMax(*fc->getOutput(0));
+//    assert(prob);
 
-    fc->getOutput(0)->setName(OUTPUT_BLOB_NAME);
-    cout << "set name out " << OUTPUT_BLOB_NAME << endl;
-    network->markOutput(*fc->getOutput(0));
+//    fc->getOutput(0)->setName(OUTPUT_BLOB_NAME);
+//    cout << "set name out " << OUTPUT_BLOB_NAME << endl;
+//    network->markOutput(*fc->getOutput(0));
 
 //    prob->getOutput(0)->setName(OUTPUT_BLOB_NAME);
 //    cout << "set name out " << OUTPUT_BLOB_NAME << endl;
 //    network->markOutput(*prob->getOutput(0));
-    ILayer *softMaxLay = reshapeSoftmax();
+    ILayer *softMaxLay = reshapeSoftmax(network, *fc->getOutput(0), 2);
 
     // build engine
     builder->setMaxBatchSize(maxBatchSize);
