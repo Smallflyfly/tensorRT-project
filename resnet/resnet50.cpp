@@ -172,13 +172,29 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
 
 // softmax layer
 ILayer* reshapeSoftmax(INetworkDefinition *network, ITensor &input, int c) {
-    IShuffleLayer *shuffleLayer = network->addShuffle(input);
-    assert(shuffleLayer);
-    shuffleLayer->setReshapeDimensions(Dims3(1, -1, c));
+    IShuffleLayer *shuffleLayer1 = network->addShuffle(input);
+    assert(shuffleLayer1);
+    shuffleLayer1->setReshapeDimensions(Dims3(1, -1, c));
 
-    Dims dim0 = shuffleLayer->getOutput(0)->getDimensions();
+    Dims dim0 = shuffleLayer1->getOutput(0)->getDimensions();
 
     cout << "softmax output dims " << dim0.d[0] << " " << dim0.d[1] << " " << dim0.d[2] << " " << dim0.d[3] << endl;
+
+    ISoftMaxLayer *softmax = network->addSoftMax(*shuffleLayer1->getOutput(0));
+    assert(softmax);
+    softmax->setAxes(1<<2);
+
+    // 再变为一维数组
+    Dims dim_{};
+    dim_.nbDims = 1;
+    dim_.d[0] = -1;
+
+    IShuffleLayer *shuffleLayer2 = network->addShuffle(*softmax->getOutput(0));
+    assert(shuffleLayer2);
+    shuffleLayer2->setReshapeDimensions(dim_);
+
+    return shuffleLayer2;
+
 }
 
 // create engine
@@ -255,6 +271,12 @@ ICudaEngine* createEngine(unsigned int maxBatchSize, IBuilder *builder, IBuilder
 //    cout << "set name out " << OUTPUT_BLOB_NAME << endl;
 //    network->markOutput(*prob->getOutput(0));
     ILayer *softMaxLay = reshapeSoftmax(network, *fc->getOutput(0), 2);
+    assert(softMaxLay);
+
+    softMaxLay->getOutput(0)->setName(OUTPUT_BLOB_NAME);
+    cout << "set name out " << OUTPUT_BLOB_NAME << endl;
+    network->markOutput(*softMaxLay->getOutput(0));
+
 
     // build engine
     builder->setMaxBatchSize(maxBatchSize);
@@ -372,8 +394,8 @@ int main(int argc, char** argv) {
     for (float & i : data) {
         i = 1.0;
     }
-
-    cv::Mat im = cv::imread("./test1.jpg");
+    string imageFile = argv[2];
+    cv::Mat im = cv::imread(imageFile);
     if (im.empty()) {
         cout << "image file is none!" << endl;
     }
@@ -388,7 +410,8 @@ int main(int argc, char** argv) {
 //    cv::waitKey();
 //    cv::destroyAllWindows();
 
-    cv::normalize(im, im, 0.0, 255.0, cv::NORM_MINMAX);
+    // 归一化
+    cv::normalize(im, im, 1.0, 0.0, cv::NORM_MINMAX);
     unsigned vol = INPUT_H * INPUT_W * 3;
     auto* fileDataChar = (uchar *) malloc(1 * 3 * INPUT_H * INPUT_W * sizeof(uchar));
     fileDataChar = im.data;
