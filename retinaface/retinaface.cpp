@@ -20,6 +20,7 @@
 
 #define DEVICE 0
 #define BATCH_SIZE 1
+#define USE_FP16
 
 using namespace std;
 using namespace nvinfer1;
@@ -27,8 +28,8 @@ using namespace nvinfer1;
 static Logger gLogger;
 static const char* INPUT_BLOB_NAME = "input";
 static const char* OUTPUT_BLOB_NAME = "output";
-static const int INPUT_W = 256;
-static const int INPUT_H = 128;
+static const int INPUT_W = 640;
+static const int INPUT_H = 480;
 
 
 
@@ -164,6 +165,48 @@ ILayer* conv_bn_relu(INetworkDefinition *network, map<string, Weights> &weightMa
     return relu;
 }
 
+IActivationLayer* ssh(INetworkDefinition *network, map<string, Weights> &weightMap, ITensor &input, int outCh) {
+    assert(outCh % 4 == 0 && "outChannels must % 4 == 0");
+    ILayer *conv3X3 = conv_bn_relu(network, weightMap, input, outCh / 2, 3, 1, 1, false, "ssh1.conv3X3.0");
+    ILayer *conv5X5_1 = conv_bn_relu(network, weightMap, input, outCh / 4, 3, 1, 1, true, "ssh1.conv5X5_1.0");
+    ILayer *conv5X5_2 = conv_bn_relu(network, weightMap, *conv5X5_1->getOutput(0), outCh / 4, 3, 1, 1, false, "ssh1.conv5X5_2.0");
+    ILayer *conv7X7_2 = conv_bn_relu(network, weightMap, *conv5X5_1->getOutput(0), outCh / 4, 3, 1, 1, true, "ssh1.conv7X7_2.0");
+    ILayer *conv7X7_3 = conv_bn_relu(network, weightMap, *conv7X7_2->getOutput(0), outCh / 4, 3, 1, 1, true, "ssh1.conv7x7_3.0");
+
+    ITensor *inputTensors[] = {conv3X3->getOutput(0), conv5X5_2->getOutput(0), conv7X7_3->getOutput(0)};
+    IConcatenationLayer *cat = network->addConcatenation(inputTensors, 3);
+    assert(cat);
+
+    IActivationLayer *relu = network->addActivation(*cat->getOutput(0), ActivationType::kRELU);
+    assert(relu);
+
+    return relu;
+}
+
+IConvolutionLayer* bboxHead(INetworkDefinition *network, map<string, Weights> &weightMap, ITensor &input, int anchorNum, const string &layerName) {
+    IConvolutionLayer *conv = network->addConvolutionNd(input, anchorNum * 4, DimsHW{1, 1}, weightMap[layerName + ".weight"], weightMap[layerName + ".bias"]);
+    assert(conv);
+    conv->setStrideNd(DimsHW{1, 1});
+
+    return conv;
+}
+
+IConvolutionLayer* clsHead(INetworkDefinition *network, map<string, Weights> &weightMap, ITensor &input, int anchorNum, const string &layerName) {
+    IConvolutionLayer *conv = network->addConvolutionNd(input, anchorNum * 2, DimsHW{1, 1}, weightMap[layerName + ".weight"], weightMap[layerName + ".bias"]);
+    assert(conv);
+    conv->setStrideNd(DimsHW{1, 1});
+
+    return conv;
+}
+
+IConvolutionLayer* lmHead(INetworkDefinition *network, map<string, Weights> &weightMap, ITensor &input, int anchorNum, const string &layerName) {
+    IConvolutionLayer *conv = network->addConvolutionNd(input, anchorNum * 10, DimsHW{1, 1}, weightMap[layerName + ".weight"], weightMap[layerName + ".bias"]);
+    assert(conv);
+    conv->setStrideNd(DimsHW{1, 1});
+
+    return conv;
+}
+
 
 // just use tensorrt api to construct network
 ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *config, DataType dataType) {
@@ -238,13 +281,78 @@ ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *c
     weightMap["up3"] = deconwts;
 
     output2 = network->addElementWise(*output2->getOutput(0), *up3->getOutput(0), ElementWiseOperation::kSUM);
-    output2 = conv_bn_relu(network, weightMap, *output2->getOutput(0), 256, 3, 1, 1, true, "fpn.merge1.0");
+    assert(output2);
+    // merge 2
+    output2 = conv_bn_relu(network, weightMap, *output2->getOutput(0), 256, 3, 1, 1, true, "fpn.merge2.0");
 
+    IDeconvolutionLayer *up2 = network->addDeconvolutionNd(*output2->getOutput(0), 256, DimsHW{2, 2}, deconwts, emptyWt);
+    assert(up2);
+    up2->setStrideNd(DimsHW{2, 2});
+    up2->setNbGroups(256);
 
+    output1 = network->addElementWise(*output1->getOutput(0), *up2->getOutput(0), ElementWiseOperation::kSUM);
+    assert(output1);
+    // merge 1
+    output1 = conv_bn_relu(network,weightMap, *output1->getOutput(0), 256, 3, 1, 1, true, "fpn.merge1.0");
 
+    IActivationLayer *ssh1 = ssh(network, weightMap, *output1->getOutput(0), 256);
+    IActivationLayer *ssh2 = ssh(network, weightMap, *output2->getOutput(0), 256);
+    IActivationLayer *ssh3 = ssh(network, weightMap, *output3->getOutput(0), 256);
 
+    auto bboxHead1 = bboxHead(network, weightMap, *ssh1->getOutput(0), 2, "BboxHead.0.conv1x1");
+    auto bboxHead2 = bboxHead(network, weightMap, *ssh2->getOutput(0), 2, "BboxHead.1.conv1x1");
+    auto bboxHead3 = bboxHead(network, weightMap, *ssh3->getOutput(0), 2, "BboxHead.2.conv1x1");
 
+    auto clsHead1 = clsHead(network, weightMap, *ssh1->getOutput(0), 2, "ClassHead.0.conv1x1");
+    auto clsHead2 = clsHead(network, weightMap, *ssh2->getOutput(0), 2, "ClassHead.1.conv1x1");
+    auto clsHead3 = clsHead(network, weightMap, *ssh3->getOutput(0), 2, "ClassHead.2.conv1x1");
 
+    auto lmHead1 = lmHead(network, weightMap, *ssh1->getOutput(0), 2, "LandmarkHead.0.conv1x1");
+    auto lmHead2 = lmHead(network, weightMap, *ssh2->getOutput(0), 2, "LandmarkHead.1.conv1x1");
+    auto lmHead3 = lmHead(network, weightMap, *ssh3->getOutput(0), 2, "LandmarkHead.2.conv1x1");
+
+    ITensor *bboxTensors[] = {bboxHead1->getOutput(0), bboxHead2->getOutput(0), bboxHead3->getOutput(0)};
+    auto bboxCat = network->addConcatenation(bboxTensors, 3);
+    assert(bboxCat);
+
+    ITensor *clsTensors[] = {clsHead1->getOutput(0), clsHead2->getOutput(1), clsHead3->getOutput(2)};
+    auto clsCat = network->addConcatenation(clsTensors, 3);
+    assert(clsCat);
+
+    ITensor *lmTensors[] = {lmHead1->getOutput(0), lmHead2->getOutput(0), lmHead3->getOutput(0)};
+    auto lmCat = network->addConcatenation(lmTensors, 3);
+    assert(lmCat);
+
+    auto creator = getPluginRegistry()->getPluginCreator("Decode_TRT", "1");
+    PluginFieldCollection pfc;
+    IPluginV2 *pluginObj = creator->createPlugin("decode", &pfc);
+    ITensor *inputTensors[] = {bboxCat->getOutput(0), clsCat->getOutput(0), lmCat->getOutput(0)};
+    auto decodeLayer = network->addPluginV2(inputTensors, 3, *pluginObj);
+    assert(decodeLayer);
+
+    decodeLayer->getOutput(0)->setName(OUTPUT_BLOB_NAME);
+    network->markOutput(*decodeLayer->getOutput(0));
+
+    // build engine
+    builder->setMaxBatchSize(maxBatchSize);
+    config->setMaxWorkspaceSize(1<<30);
+
+#if defined(USE_FP16)
+    config->setFlag(BuilderFlag::kFP16);
+#endif
+
+    cout << "Building engine, wait for a while" << endl;
+    ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
+    assert(engine && "bulid engine fail");
+
+    network->destroy();
+    // release memory
+    for(auto& m : weightMap) {
+        free((void *)(m.second.values));
+        m.second.values = NULL;
+    }
+
+    return engine;
 }
 
 
@@ -256,8 +364,14 @@ void APIToModel(int maxBatchSize, IHostMemory **modelStream) {
 
     // create engine
     ICudaEngine *engine = createEngine(maxBatchSize, builder, config, DataType::kFLOAT);
+    assert(engine != nullptr);
 
+    // serialize the engine
+    (*modelStream) = engine->serialize();
 
+    // free
+    engine->destroy();
+    builder->destroy();
 }
 
 
@@ -271,7 +385,17 @@ int main(int argc, char** argv) {
     if (string(argv[1]) == "-s") {
         IHostMemory *modelStream{nullptr};
         APIToModel(BATCH_SIZE, &modelStream);
-
+        assert(modelStream != nullptr);
+        ofstream p("retianface.engine", ios::binary);
+        if (!p) {
+            cerr << "engine file build fail" << endl;
+            return -1;
+        }
+        p.write(reinterpret_cast<const char*>(modelStream->data()), modelStream->size());
+        modelStream->destroy();
+        return 0;
+    } else {
+        cout << "Not finish coding" << endl;
+        return 0;
     }
-
 }
