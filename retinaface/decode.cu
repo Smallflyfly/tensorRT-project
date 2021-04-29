@@ -1,63 +1,151 @@
-//
-// Created by fangpf on 2021/4/28.
-//
-
 #include "decode.h"
 #include "stdio.h"
 
-//using namespace decodeplugin;
-
 namespace nvinfer1
 {
-    DecodePlugin::DecodePlugin() {}
-    DecodePlugin::~DecodePlugin() {
-    }
-    // create the plugin at runtime from a byte steam
-    DecodePlugin::DecodePlugin(const void *data, size_t length) {
+    DecodePlugin::DecodePlugin()
+    {
     }
 
-    __device__ float Logist(float data) {
-        return 1.0 / (1.0 + expf(-data));
+    DecodePlugin::~DecodePlugin()
+    {
     }
 
-    __global__ void CalDetection(const float *input, float *output, int numElem, int step, int anchor, int outputElem) {
+    // create the plugin at runtime from a byte stream
+    DecodePlugin::DecodePlugin(const void* data, size_t length)
+    {
+    }
+
+    void DecodePlugin::serialize(void* buffer) const
+    {
+    }
+
+    size_t DecodePlugin::getSerializationSize() const
+    {  
+        return 0;
+    }
+
+    int DecodePlugin::initialize()
+    { 
+        return 0;
+    }
+
+    Dims DecodePlugin::getOutputDimensions(int index, const Dims* inputs, int nbInputDims)
+    {
+        //output the result to channel
+        int totalCount = 0;
+        totalCount += decodeplugin::INPUT_H / 8 * decodeplugin::INPUT_W / 8 * 2 * sizeof(decodeplugin::Detection) / sizeof(float);
+        totalCount += decodeplugin::INPUT_H / 16 * decodeplugin::INPUT_W / 16 * 2 * sizeof(decodeplugin::Detection) / sizeof(float);
+        totalCount += decodeplugin::INPUT_H / 32 * decodeplugin::INPUT_W / 32 * 2 * sizeof(decodeplugin::Detection) / sizeof(float);
+
+        return Dims3(totalCount + 1, 1, 1);
+    }
+
+    // Set plugin namespace
+    void DecodePlugin::setPluginNamespace(const char* pluginNamespace)
+    {
+        mPluginNamespace = pluginNamespace;
+    }
+
+    const char* DecodePlugin::getPluginNamespace() const
+    {
+        return mPluginNamespace;
+    }
+
+    // Return the DataType of the plugin output at the requested index
+    DataType DecodePlugin::getOutputDataType(int index, const nvinfer1::DataType* inputTypes, int nbInputs) const
+    {
+        return DataType::kFLOAT;
+    }
+
+    // Return true if output tensor is broadcast across a batch.
+    bool DecodePlugin::isOutputBroadcastAcrossBatch(int outputIndex, const bool* inputIsBroadcasted, int nbInputs) const
+    {
+        return false;
+    }
+
+    // Return true if plugin can use input that is broadcast across batch without replication.
+    bool DecodePlugin::canBroadcastInputAcrossBatch(int inputIndex) const
+    {
+        return false;
+    }
+
+    void DecodePlugin::configurePlugin(const PluginTensorDesc* in, int nbInput, const PluginTensorDesc* out, int nbOutput)
+    {
+    }
+
+    // Attach the plugin object to an execution context and grant the plugin the access to some context resource.
+    void DecodePlugin::attachToContext(cudnnContext* cudnnContext, cublasContext* cublasContext, IGpuAllocator* gpuAllocator)
+    {
+    }
+
+    // Detach the plugin object from its execution context.
+    void DecodePlugin::detachFromContext() {}
+
+    const char* DecodePlugin::getPluginType() const
+    {
+        return "Decode_TRT";
+    }
+
+    const char* DecodePlugin::getPluginVersion() const
+    {
+        return "1";
+    }
+
+    void DecodePlugin::destroy()
+    {
+        delete this;
+    }
+
+    // Clone the plugin
+    IPluginV2IOExt* DecodePlugin::clone() const
+    {
+        DecodePlugin *p = new DecodePlugin();
+        p->setPluginNamespace(mPluginNamespace);
+        return p;
+    }
+
+    __device__ float Logist(float data){ return 1./(1. + expf(-data)); };
+
+    __global__ void CalDetection(const float *input, float *output, int num_elem, int step, int anchor, int output_elem) {
+
         int idx = threadIdx.x + blockDim.x * blockIdx.x;
-        if (idx >= numElem) return;
+        if (idx >= num_elem) return;
 
         int h = decodeplugin::INPUT_H / step;
         int w = decodeplugin::INPUT_W / step;
-        int totalGrid = h * w;
-        int bnIdx = idx / totalGrid;
-        idx = idx - bnIdx * totalGrid;
+        int total_grid = h * w;
+        int bn_idx = idx / total_grid;
+        idx = idx - bn_idx * total_grid;
         int y = idx / w;
         int x = idx % w;
-        const float *curInput = input + bnIdx * (4 + 2 + 10) * 2 * totalGrid;
-        const float *bboxReg = &curInput[0];
-        const float *clsReg = &curInput[2 * 4 * totalGrid];
-        const float *lmReg = &curInput[2 * 4 * totalGrid + 2 * 2 + totalGrid];
+        const float* cur_input = input + bn_idx * (4 + 2 + 10) * 2 * total_grid;
+        const float *bbox_reg = &cur_input[0];
+        const float *cls_reg = &cur_input[2 * 4 * total_grid];
+        const float *lmk_reg = &cur_input[2 * 4 * total_grid + 2 * 2 * total_grid];
 
-        for (int k = 0; k < 2; k++) {
-            float conf1 = clsReg[idx + k * totalGrid * 2];
-            float conf2 = clsReg[idx + k * totalGrid * 2 + totalGrid];
+        for (int k = 0; k < 2; ++k) {
+            float conf1 = cls_reg[idx + k * total_grid * 2];
+            float conf2 = cls_reg[idx + k * total_grid * 2 + total_grid];
             conf2 = expf(conf2) / (expf(conf1) + expf(conf2));
             if (conf2 <= 0.02) continue;
 
-            float *resCount = output + bnIdx * outputElem;
-            int count = (int)atomicAdd(resCount, 1);
-            char *data = (char *)resCount + sizeof(float) + count * sizeof(decodeplugin::Detection);
+            float *res_count = output + bn_idx * output_elem;
+            int count = (int)atomicAdd(res_count, 1);
+            char* data = (char *)res_count + sizeof(float) + count * sizeof(decodeplugin::Detection);
             decodeplugin::Detection* det = (decodeplugin::Detection*)(data);
 
             float prior[4];
-            prior[0] = ((float)x + 0.5) / decodeplugin::INPUT_W;
-            prior[1] = ((float)y+ 0.5) / decodeplugin::INPUT_H;
+            prior[0] = ((float)x + 0.5) / w;
+            prior[1] = ((float)y + 0.5) / h;
             prior[2] = (float)anchor * (k + 1) / decodeplugin::INPUT_W;
             prior[3] = (float)anchor * (k + 1) / decodeplugin::INPUT_H;
 
-            // location
-            det->bbox[0] = prior[0] + bboxReg[idx + k * totalGrid * 4] * 0.1 * prior[2];
-            det->bbox[1] = prior[1] + bboxReg[idx + k * totalGrid * 4 + totalGrid] * 0.1 * prior[3];
-            det->bbox[2] = prior[2] * expf(bboxReg[idx + k * totalGrid * 4 + totalGrid * 2] * 0.2);
-            det->bbox[3] = prior[3] * expf(bboxReg[idx + k * totalGrid * 4 + totalGrid * 3] * 0.2);
+            //Location
+            det->bbox[0] = prior[0] + bbox_reg[idx + k * total_grid * 4] * 0.1 * prior[2];
+            det->bbox[1] = prior[1] + bbox_reg[idx + k * total_grid * 4 + total_grid] * 0.1 * prior[3];
+            det->bbox[2] = prior[2] * expf(bbox_reg[idx + k * total_grid * 4 + total_grid * 2] * 0.2);
+            det->bbox[3] = prior[3] * expf(bbox_reg[idx + k * total_grid * 4 + total_grid * 3] * 0.2);
             det->bbox[0] -= det->bbox[2] / 2;
             det->bbox[1] -= det->bbox[3] / 2;
             det->bbox[2] += det->bbox[0];
@@ -68,193 +156,88 @@ namespace nvinfer1
             det->bbox[3] *= decodeplugin::INPUT_H;
             det->class_confidence = conf2;
             for (int i = 0; i < 10; i += 2) {
-                det->landmark[i] = prior[0] + lmReg[idx + k * totalGrid * 10 + totalGrid * i] * 0.1  * prior[2];
-                det->landmark[i+1] = prior[1] + lmReg[idx + k * totalGrid * 10 + totalGrid * (i + 1)] * 0.1 * prior[3];
+                det->landmark[i] = prior[0] + lmk_reg[idx + k * total_grid * 10 + total_grid * i] * 0.1 * prior[2];
+                det->landmark[i+1] = prior[1] + lmk_reg[idx + k * total_grid * 10 + total_grid * (i + 1)] * 0.1 * prior[3];
                 det->landmark[i] *= decodeplugin::INPUT_W;
                 det->landmark[i+1] *= decodeplugin::INPUT_H;
             }
         }
     }
 
-    void DecodePlugin::forwardGpu(const float *const *inputs, float *output, cudaStream_t stream, int batchSize) {
-        int numElem = 0;
-        int baseStep = 8;
-        int baseAnchor = 16;
-        int threadCount;
+    void DecodePlugin::forwardGpu(const float *const * inputs, float * output, cudaStream_t stream, int batchSize)
+    {
+        int num_elem = 0;
+        int base_step = 8;
+        int base_anchor = 16;
+        int thread_count;
 
         int totalCount = 1;
         totalCount += decodeplugin::INPUT_H / 8 * decodeplugin::INPUT_W / 8 * 2 * sizeof(decodeplugin::Detection) / sizeof(float);
         totalCount += decodeplugin::INPUT_H / 16 * decodeplugin::INPUT_W / 16 * 2 * sizeof(decodeplugin::Detection) / sizeof(float);
         totalCount += decodeplugin::INPUT_H / 32 * decodeplugin::INPUT_W / 32 * 2 * sizeof(decodeplugin::Detection) / sizeof(float);
-        for (int i = 0; i < batchSize; i++) {
-            cudaMemset(output + i * totalCount, 0, sizeof(float));
+        for(int idx = 0 ; idx < batchSize; ++idx) {
+            cudaMemset(output + idx * totalCount, 0, sizeof(float));
         }
 
-        for (int i = 0; i < 3; i++) {
-            numElem = batchSize * decodeplugin::INPUT_H / baseStep * decodeplugin::INPUT_W / baseStep;
-            threadCount = (numElem < threadCount_) ? numElem : threadCount_;
-            CalDetection <<< (numElem + threadCount - 1) / threadCount, threadCount>>> (inputs[i], output, numElem, baseStep, baseAnchor, totalCount);
-            baseStep *= 2;
-            baseAnchor *= 4;
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            num_elem = batchSize * decodeplugin::INPUT_H / base_step * decodeplugin::INPUT_W / base_step;
+            thread_count = (num_elem < thread_count_) ? num_elem : thread_count_;
+            CalDetection<<< (num_elem + thread_count - 1) / thread_count, thread_count>>>
+                (inputs[i], output, num_elem, base_step, base_anchor, totalCount);
+            base_step *= 2;
+            base_anchor *= 4;
         }
     }
 
-    const char *DecodePlugin::getPluginType() const {
-        return "Decode_TRT";
-    }
-
-    const char *DecodePlugin::getPluginVersion() const {
-        return "1";
-    }
-
-    int DecodePlugin::getNbOutputs() const {
-        return 1;
-    }
-
-    Dims DecodePlugin::getOutputDimensions(int index, const Dims *inputs, int nbInputDims) {
-        // output the result to channel
-        int totalCount = 0;
-        totalCount += decodeplugin::INPUT_H / 8 * decodeplugin::INPUT_W / 8 * 2 * sizeof(decodeplugin::Detection) /
-                sizeof(float);
-        totalCount += decodeplugin::INPUT_H / 16 * decodeplugin::INPUT_W / 16 * 2 * sizeof(decodeplugin::Detection) /
-                sizeof(float);
-        totalCount += decodeplugin::INPUT_H / 32 * decodeplugin::INPUT_W / 32 * 2 * sizeof(decodeplugin::Detection) /
-                sizeof(float);
-        return Dims3(totalCount + 1, 1, 1);
-    }
-
-    int DecodePlugin::initialize() {
-        return 0;
-    }
-
-    void DecodePlugin::terminate() {
-
-    }
-
-    size_t DecodePlugin::getWorkspaceSize(int maxBatchSize) const {
-        return 0;
-    }
-
-    int DecodePlugin::enqueue(int batchSize, const void *const *inputs, void **outputs, void *workspace,
-                                  cudaStream_t stream) {
-        // GPU
+    int DecodePlugin::enqueue(int batchSize, const void*const * inputs, void** outputs, void* workspace, cudaStream_t stream)
+    {
+        //GPU
+        //CUDA_CHECK(cudaStreamSynchronize(stream));
         forwardGpu((const float *const *)inputs, (float *)outputs[0], stream, batchSize);
         return 0;
-    }
-
-    size_t DecodePlugin::getSerializationSize() const {
-        return 0;
-    }
-
-    void DecodePlugin::serialize(void *buffer) const {
-
-    }
-
-    void DecodePlugin::destroy() {
-        delete this;
-    }
-
-    void DecodePlugin::setPluginNamespace(const char *pluginNamespace) {
-        mPluginNamespace = pluginNamespace;
-    }
-
-    const char *DecodePlugin::getPluginNamespace() const {
-        return mPluginNamespace;
-    }
-
-    DataType
-    DecodePlugin::getOutputDataType(int index, const nvinfer1::DataType *inputTypes, int nbInputs) const {
-        return DataType::kFLOAT;
-    }
-
-    bool DecodePlugin::isOutputBroadcastAcrossBatch(int outputIndex, const bool *inputIsBroadcasted,
-                                                    int nbInputs) const {
-        return false;
-    }
-
-    bool DecodePlugin::canBroadcastInputAcrossBatch(int inputIndex) const {
-        return false;
-    }
-
-    void DecodePlugin::attachToContext(cudnnContext *context, cublasContext *cublasContext, IGpuAllocator *allocator) {
-    }
-
-    void DecodePlugin::detachFromContext() {
-    }
-
-    // clone the plugin
-    IPluginV2IOExt *DecodePlugin::clone() const {
-        DecodePlugin *p = new DecodePlugin();
-        p->setPluginNamespace(mPluginNamespace);
-        return p;
-    }
-
-    void DecodePlugin::configurePlugin(const PluginTensorDesc *in, int nbInput, const PluginTensorDesc *out,
-                                       int nbOutput) {
-
-    }
-
-    bool DecodePlugin::supportsFormatCombination(int pos, const PluginTensorDesc *inOut, int nbInputs,
-                                                 int nbOutputs) const {
-        return inOut[pos].format == TensorFormat::kLINEAR && inOut[pos].type == DataType::kFLOAT;
-    }
-
-//    int DecodePlugin::getTensorRTVersion() const {
-//        return IPluginV2IOExt::getTensorRTVersion();
-//    }
+    };
 
     PluginFieldCollection DecodePluginCreator::mFC{};
     std::vector<PluginField> DecodePluginCreator::mPluginAttributes;
 
-    DecodePluginCreator::DecodePluginCreator() {
+    DecodePluginCreator::DecodePluginCreator()
+    {
         mPluginAttributes.clear();
 
         mFC.nbFields = mPluginAttributes.size();
         mFC.fields = mPluginAttributes.data();
     }
 
-    DecodePluginCreator::~DecodePluginCreator() {
-
-    }
-
-    int DecodePluginCreator::getTensorRTVersion() const {
-        return IPluginCreator::getTensorRTVersion();
-    }
-
-    const char *DecodePluginCreator::getPluginName() const {
+    const char* DecodePluginCreator::getPluginName() const
+    {
         return "Decode_TRT";
     }
 
-    const char *DecodePluginCreator::getPluginVersion() const {
+    const char* DecodePluginCreator::getPluginVersion() const
+    {
         return "1";
     }
 
-    const PluginFieldCollection *DecodePluginCreator::getFieldNames() {
+    const PluginFieldCollection* DecodePluginCreator::getFieldNames()
+    {
         return &mFC;
     }
 
-    IPluginV2IOExt *DecodePluginCreator::createPlugin(const char *name, const PluginFieldCollection *fc) {
-        DecodePlugin *obj = new DecodePlugin();
+    IPluginV2IOExt* DecodePluginCreator::createPlugin(const char* name, const PluginFieldCollection* fc)
+    {
+        DecodePlugin* obj = new DecodePlugin();
         obj->setPluginNamespace(mNamespace.c_str());
         return obj;
     }
 
-    IPluginV2IOExt *DecodePluginCreator::deserializePlugin(const char *name, const void *serialData, size_t serialLength) {
+    IPluginV2IOExt* DecodePluginCreator::deserializePlugin(const char* name, const void* serialData, size_t serialLength)
+    {
         // This object will be deleted when the network is destroyed, which will
         // call PReluPlugin::destroy()
-        DecodePlugin *obj = new DecodePlugin();
+        DecodePlugin* obj = new DecodePlugin(serialData, serialLength);
         obj->setPluginNamespace(mNamespace.c_str());
         return obj;
-    }
-
-    void DecodePluginCreator::setPluginNamespace(const char *pluginNamespace) {
-        mNamespace = pluginNamespace;
-    }
-
-    const char *DecodePluginCreator::getPluginNamespace() const {
-        return mNamespace.c_str();
     }
 
 }
-
-

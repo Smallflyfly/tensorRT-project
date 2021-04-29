@@ -32,7 +32,7 @@ static const char* INPUT_BLOB_NAME = "input";
 static const char* OUTPUT_BLOB_NAME = "output";
 static const int INPUT_W = 640;
 static const int INPUT_H = 480;
-
+static const int OUTPUT_SIZE = (INPUT_H / 8 * INPUT_W / 8 + INPUT_H / 16 * INPUT_W / 16 + INPUT_H / 32 * INPUT_W / 32) * 2 * 15 + 1;
 
 
 map<string, Weights> loadWeight(const string& weightFile) {
@@ -108,7 +108,7 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
 
     IConvolutionLayer *conv1 = network->addConvolutionNd(input, outCh, DimsHW{1, 1}, weightMap[layerName + ".conv1.weight"], emptyWt);
     assert(conv1);
-    conv1->setStrideNd(DimsHW{1, 1}); // 差异点
+    conv1->setStrideNd(DimsHW{1, 1});
 
     IScaleLayer *bn1 = addBN(network, weightMap, *conv1->getOutput(0), layerName + ".bn1", 1e-5);
     IActivationLayer *relu1 = network->addActivation(*bn1->getOutput(0), ActivationType::kRELU);
@@ -380,6 +380,32 @@ void APIToModel(int maxBatchSize, IHostMemory **modelStream) {
     builder->destroy();
 }
 
+void doInference(IExecutionContext &context, float *input, float *output) {
+    const ICudaEngine &engine = context.getEngine();
+
+    assert(engine.getNbBindings() == 2);
+    void *buffers[2];
+
+    const int inputIndex = engine.getBindingIndex(INPUT_BLOB_NAME);
+    const int outputIndex = engine.getBindingIndex(OUTPUT_BLOB_NAME);
+
+    CHECK(cudaMalloc(&buffers[inputIndex], 3 * INPUT_W * INPUT_H * sizeof(float)));
+    CHECK(cudaMalloc(&buffers[outputIndex], OUTPUT_SIZE * sizeof(float)));
+
+    cudaStream_t stream;
+    CHECK(cudaStreamCreate(&stream));
+
+    CHECK(cudaMemcpyAsync(buffers[inputIndex], input, 3 * INPUT_H * INPUT_W * sizeof(float), cudaMemcpyHostToDevice, stream));
+    context.enqueue(1, buffers, stream, nullptr);
+    CHECK(cudaMemcpyAsync(output, buffers[outputIndex], OUTPUT_SIZE * sizeof(float), cudaMemcpyDeviceToHost, stream));
+    cudaStreamSynchronize(stream);
+
+    // free
+    cudaStreamDestroy(stream);
+    CHECK(cudaFree(buffers[inputIndex]));
+    CHECK(cudaFree(buffers[outputIndex]));
+}
+
 
 int main(int argc, char** argv) {
     cudaSetDevice(DEVICE);
@@ -392,7 +418,7 @@ int main(int argc, char** argv) {
         IHostMemory *modelStream{nullptr};
         APIToModel(BATCH_SIZE, &modelStream);
         assert(modelStream != nullptr);
-        ofstream p("retianface.engine", ios::binary);
+        ofstream p("retinaface.engine", ios::binary);
         if (!p) {
             cerr << "engine file build fail" << endl;
             return -1;
@@ -401,7 +427,7 @@ int main(int argc, char** argv) {
         modelStream->destroy();
         return 0;
     } else {
-        if (string(argv[1]) == "d") {
+        if (string(argv[1]) == "-d") {
             ifstream file("retinaface.engine", ios::binary);
             if (file.good()) {
                 file.seekg(0, file.end);
@@ -418,9 +444,67 @@ int main(int argc, char** argv) {
         // input data
         float data[BATCH_SIZE * 3 * INPUT_H * INPUT_W];
 
-        cv::Mat im1 = cv::imread("test.jpg");
+        cv::Mat im1 = cv::imread("test.jpeg");
+
+        cv::imshow("im1", im1);
+
         cv::Mat im2 = preprocessImage(im1, INPUT_W, INPUT_H);
+
+        cv::imshow("im2", im2);
+
+        cv::waitKey();
+        cv::destroyAllWindows();
         // 去均值
+//        float *p_data = &data[0];
+//        for (int i = 0; i < INPUT_W * INPUT_H; ++i) {
+//            p_data[i] = im2.at<cv::Vec3b>(i)[0] - 104.0;
+//            p_data[i + INPUT_H * INPUT_W] = im2.at<cv::Vec3b>(i)[1] - 117.0;
+//            p_data[i + 2 * INPUT_W * INPUT_H] = im2.at<cv::Vec3b>(i)[2] - 123.0;
+//        }
+        for (int b = 0; b < BATCH_SIZE; b++) {
+            float *p_data = &data[b * 3 * INPUT_H * INPUT_W];
+            for (int i = 0; i < INPUT_H * INPUT_W; i++) {
+                p_data[i] = im2.at<cv::Vec3b>(i)[0] - 104.0;
+                p_data[i + INPUT_H * INPUT_W] = im2.at<cv::Vec3b>(i)[1] - 117.0;
+                p_data[i + 2 * INPUT_H * INPUT_W] = im2.at<cv::Vec3b>(i)[2] - 123.0;
+            }
+        }
+
+        IRuntime *runtime = createInferRuntime(gLogger);
+        assert(runtime);
+
+        ICudaEngine *engine = runtime->deserializeCudaEngine(trtModelStream, size);
+        assert(engine);
+
+        IExecutionContext *context = engine->createExecutionContext();
+        assert(context);
+
+        // inference
+        float prob[BATCH_SIZE * OUTPUT_SIZE];
+        auto start = chrono::system_clock::now();
+        doInference(*context, data, prob);
+        auto end = chrono::system_clock::now();
+        cout << chrono::duration_cast<chrono::milliseconds>(end - start).count() << "ms" << endl;
+
+        vector<decodeplugin::Detection> res;
+        nms(res, &prob[0]);
+        cout << "number of detections -> " << prob[0] << endl;
+        cout << " -> " << prob[0 + 10] << endl;
+        cout << "after nms ->" << res.size() << endl;
+        cv::Mat tmp = im1.clone();
+        for (size_t j = 0; j < res.size(); j++) {
+            if (res[j].class_confidence < 0.1) continue;
+            cv::Rect r = getRectAdaptLandmark(tmp, INPUT_W, INPUT_H, res[j].bbox, res[j].landmark);
+            cv::rectangle(tmp, r, cv::Scalar(0x27, 0xC1, 0x36), 2);
+            for (int i = 0; i < 10; i += 2) {
+                cv::circle(tmp, cv::Point(res[j].landmark[i], res[j].landmark[i+1]), 1, cv::Scalar(255 * (i > 2), 255 * (i > 0 && i < 8), 255 * (i < 6)), 4);
+            }
+        }
+        cv::imwrite("test-out.jpg", tmp);
+
+        context->destroy();
+        engine->destroy();
+        runtime->destroy();
 
         return 0;
     }

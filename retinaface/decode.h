@@ -1,19 +1,14 @@
-//
-// Created by fangpf on 2021/4/28.
-//
+#ifndef _DECODE_CU_H
+#define _DECODE_CU_H
 
-#ifndef RETINAFACE_DECODE_CUH
-#define RETINAFACE_DECODE_CUH
-
-#include "NvInfer.h"
-#include <cstdio>
 #include <string>
 #include <vector>
+#include "NvInfer.h"
 
 namespace decodeplugin
 {
-    struct alignas(float) Detection {
-        float bbox[4];
+    struct alignas(float) Detection{
+        float bbox[4];  //x1 y1 x2 y2
         float class_confidence;
         float landmark[10];
     };
@@ -25,104 +20,100 @@ namespace nvinfer1
 {
     class DecodePlugin: public IPluginV2IOExt
     {
-    public:
-        DecodePlugin();
-        DecodePlugin(const void* data, size_t length);
+        public:
+            DecodePlugin();
+            DecodePlugin(const void* data, size_t length);
 
-        ~DecodePlugin();
+            ~DecodePlugin();
 
-        int getNbOutputs() const TRTNOEXCEPT override;
+            int getNbOutputs() const override
+            {
+                return 1;
+            }
 
-        Dims getOutputDimensions(int index, const Dims *inputs, int nbInputDims) TRTNOEXCEPT override;
+            Dims getOutputDimensions(int index, const Dims* inputs, int nbInputDims) override;
 
-        int initialize() TRTNOEXCEPT override;
+            int initialize() override;
 
-        void terminate() TRTNOEXCEPT override;
+            virtual void terminate() override {};
 
-        size_t getWorkspaceSize(int maxBatchSize) const TRTNOEXCEPT override;
+            virtual size_t getWorkspaceSize(int maxBatchSize) const override { return 0;}
 
-        int enqueue(int batchSize, const void *const *inputs, void **outputs, void *workspace,
-                    cudaStream_t stream) TRTNOEXCEPT override;
+            virtual int enqueue(int batchSize, const void*const * inputs, void** outputs, void* workspace, cudaStream_t stream) override;
 
-        size_t getSerializationSize() const TRTNOEXCEPT override;
+            virtual size_t getSerializationSize() const override;
 
-        void serialize(void *buffer) const TRTNOEXCEPT override;
+            virtual void serialize(void* buffer) const override;
 
-        bool supportsFormatCombination(int pos, const PluginTensorDesc *inOut, int nbInputs,
-                                       int nbOutputs) const TRTNOEXCEPT override;
+            bool supportsFormatCombination(int pos, const PluginTensorDesc* inOut, int nbInputs, int nbOutputs) const override {
+                return inOut[pos].format == TensorFormat::kLINEAR && inOut[pos].type == DataType::kFLOAT;
+            }
 
-        const char *getPluginType() const TRTNOEXCEPT override;
+            const char* getPluginType() const override;
 
-        const char *getPluginVersion() const TRTNOEXCEPT override;
+            const char* getPluginVersion() const override;
 
-        void destroy() TRTNOEXCEPT override;
+            void destroy() override;
 
-        IPluginV2IOExt *clone() const TRTNOEXCEPT override;
+            IPluginV2IOExt* clone() const override;
 
-        void setPluginNamespace(const char *pluginNamespace) TRTNOEXCEPT override;
+            void setPluginNamespace(const char* pluginNamespace) override;
 
-        const char *getPluginNamespace() const TRTNOEXCEPT override;
+            const char* getPluginNamespace() const override;
 
-        DataType getOutputDataType(int index, const nvinfer1::DataType *inputTypes,
-                                   int nbInputs) const TRTNOEXCEPT override;
+            DataType getOutputDataType(int index, const nvinfer1::DataType* inputTypes, int nbInputs) const override;
 
-        bool isOutputBroadcastAcrossBatch(int outputIndex, const bool *inputIsBroadcasted,
-                                          int nbInputs) const TRTNOEXCEPT override;
+            bool isOutputBroadcastAcrossBatch(int outputIndex, const bool* inputIsBroadcasted, int nbInputs) const override;
 
-        bool canBroadcastInputAcrossBatch(int inputIndex) const TRTNOEXCEPT override;
+            bool canBroadcastInputAcrossBatch(int inputIndex) const override;
 
-        void attachToContext(cudnnContext *context, cublasContext *cublasContext, IGpuAllocator *allocator) override;
+            void attachToContext(
+                    cudnnContext* cudnnContext, cublasContext* cublasContext, IGpuAllocator* gpuAllocator) override;
 
-        void configurePlugin(const PluginTensorDesc *in, int nbInput, const PluginTensorDesc *out,
-                             int nbOutput) TRTNOEXCEPT override;
+            void configurePlugin(const PluginTensorDesc* in, int nbInput, const PluginTensorDesc* out, int nbOutput) override;
 
-        void detachFromContext() override;
+            void detachFromContext() override;
 
-
-        int input_size_;
-
-//    protected:
-//        int getTensorRTVersion() const override;
-
-    private:
-        void forwardGpu(const float *const *inputs, float *output, cudaStream_t  stream, int batchSize = 1);
-        int threadCount_ = 256;
-        const char* mPluginNamespace;
+            int input_size_;
+        private:
+            void forwardGpu(const float *const * inputs, float* output, cudaStream_t stream, int batchSize = 1);
+            int thread_count_ = 256;
+            const char* mPluginNamespace;
     };
 
     class DecodePluginCreator : public IPluginCreator
     {
-    public:
-        DecodePluginCreator();
+        public:
+            DecodePluginCreator();
 
-        virtual ~DecodePluginCreator();
+            ~DecodePluginCreator() override = default;
 
-        int getTensorRTVersion() const override;
+            const char* getPluginName() const override;
 
-        const char *getPluginName() const TRTNOEXCEPT override;
+            const char* getPluginVersion() const override;
 
-        const char *getPluginVersion() const TRTNOEXCEPT override;
+            const PluginFieldCollection* getFieldNames() override;
 
-        const PluginFieldCollection *getFieldNames() TRTNOEXCEPT override;
+            IPluginV2IOExt* createPlugin(const char* name, const PluginFieldCollection* fc) override;
 
-        IPluginV2IOExt *createPlugin(const char *name, const PluginFieldCollection *fc) TRTNOEXCEPT override;
+            IPluginV2IOExt* deserializePlugin(const char* name, const void* serialData, size_t serialLength) override;
 
-        IPluginV2IOExt *
-        deserializePlugin(const char *name, const void *serialData, size_t serialLength) TRTNOEXCEPT override;
+            void setPluginNamespace(const char* libNamespace) override
+            {
+                mNamespace = libNamespace;
+            }
 
-        void setPluginNamespace(const char *pluginNamespace) TRTNOEXCEPT override;
+            const char* getPluginNamespace() const override
+            {
+                return mNamespace.c_str();
+            }
 
-        const char *getPluginNamespace() const TRTNOEXCEPT override;
-
-    private:
-        std::string mNamespace;
-        static PluginFieldCollection mFC;
-        static std::vector<PluginField> mPluginAttributes;
+        private:
+            std::string mNamespace;
+            static PluginFieldCollection mFC;
+            static std::vector<PluginField> mPluginAttributes;
     };
-
     REGISTER_TENSORRT_PLUGIN(DecodePluginCreator);
 };
 
-
-
-#endif
+#endif 
