@@ -147,7 +147,7 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
     return relu3;
 }
 
-ILayer* conv_bn_relu(INetworkDefinition *network, map<string, Weights> &weightMap, ITensor &input, int outCh, int ksize, int stride, int padding, bool useRelu, const string &layerName) {
+ILayer* conv_bn_relu(INetworkDefinition *network, map<string, Weights> &weightMap, ITensor &input, int outCh, int ksize, int stride, int padding, bool useRelu, string layerName) {
     Weights emptyWt{DataType::kFLOAT, nullptr, 0};
 
     IConvolutionLayer *conv = network->addConvolutionNd(input, outCh, DimsHW{ksize, ksize}, weightMap[layerName + ".weight"], emptyWt);
@@ -155,7 +155,10 @@ ILayer* conv_bn_relu(INetworkDefinition *network, map<string, Weights> &weightMa
     conv->setStrideNd(DimsHW{stride, stride});
     conv->setPaddingNd(DimsHW{padding, padding});
 
-    IScaleLayer *bn = addBN(network, weightMap, *conv->getOutput(0), layerName + ".1", 1e-5);
+    // .0 变为 .1操作
+    layerName.replace(layerName.length()-1, layerName.length() - 1, "1");
+    cout << layerName << endl;
+    IScaleLayer *bn = addBN(network, weightMap, *conv->getOutput(0), layerName, 1e-5);
 
     if (!useRelu) return bn;
 
@@ -171,7 +174,7 @@ IActivationLayer* ssh(INetworkDefinition *network, map<string, Weights> &weightM
     ILayer *conv5X5_1 = conv_bn_relu(network, weightMap, input, outCh / 4, 3, 1, 1, true, "ssh1.conv5X5_1.0");
     ILayer *conv5X5_2 = conv_bn_relu(network, weightMap, *conv5X5_1->getOutput(0), outCh / 4, 3, 1, 1, false, "ssh1.conv5X5_2.0");
     ILayer *conv7X7_2 = conv_bn_relu(network, weightMap, *conv5X5_1->getOutput(0), outCh / 4, 3, 1, 1, true, "ssh1.conv7X7_2.0");
-    ILayer *conv7X7_3 = conv_bn_relu(network, weightMap, *conv7X7_2->getOutput(0), outCh / 4, 3, 1, 1, true, "ssh1.conv7x7_3.0");
+    ILayer *conv7X7_3 = conv_bn_relu(network, weightMap, *conv7X7_2->getOutput(0), outCh / 4, 3, 1, 1, false, "ssh1.conv7x7_3.0");
 
     ITensor *inputTensors[] = {conv3X3->getOutput(0), conv5X5_2->getOutput(0), conv7X7_3->getOutput(0)};
     IConcatenationLayer *cat = network->addConcatenation(inputTensors, 3);
@@ -225,7 +228,7 @@ ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *c
     conv1->setStrideNd(DimsHW{2, 2});
     conv1->setPaddingNd(DimsHW{3, 3});
 
-    IScaleLayer *bn1 = addBN(network, weightMap, *conv1->getOutput(0), "body.layer1.0.bn1", 1e-5);
+    IScaleLayer *bn1 = addBN(network, weightMap, *conv1->getOutput(0), "body.bn1", 1e-5);
     assert(bn1);
 
     // relu
@@ -239,7 +242,7 @@ ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *c
 
     IActivationLayer *x;
     // blocks = [3, 4, 6, 3]
-    x = bottleneck(network, weightMap, *pool1->getOutput(0), 64, 64, 1, "body.layer1.0.");
+    x = bottleneck(network, weightMap, *pool1->getOutput(0), 64, 64, 1, "body.layer1.0");
     x = bottleneck(network, weightMap, *x->getOutput(0), 256, 64, 1, "body.layer1.1");
     x = bottleneck(network, weightMap, *x->getOutput(0), 256, 64, 1, "body.layer1.2");
 
@@ -315,7 +318,7 @@ ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *c
     auto bboxCat = network->addConcatenation(bboxTensors, 3);
     assert(bboxCat);
 
-    ITensor *clsTensors[] = {clsHead1->getOutput(0), clsHead2->getOutput(1), clsHead3->getOutput(2)};
+    ITensor *clsTensors[] = {clsHead1->getOutput(0), clsHead2->getOutput(0), clsHead3->getOutput(0)};
     auto clsCat = network->addConcatenation(clsTensors, 3);
     assert(clsCat);
 
