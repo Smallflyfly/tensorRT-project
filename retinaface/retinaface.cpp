@@ -18,6 +18,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/videoio.hpp"
 #include "decode.h"
+#include "retinaface.hpp"
 
 #define DEVICE 0
 #define BATCH_SIZE 1
@@ -400,7 +401,27 @@ int main(int argc, char** argv) {
         modelStream->destroy();
         return 0;
     } else {
-        cout << "Not finish coding" << endl;
+        if (string(argv[1]) == "d") {
+            ifstream file("retinaface.engine", ios::binary);
+            if (file.good()) {
+                file.seekg(0, file.end);
+                size = file.tellg();
+                file.seekg(0, file.beg);
+                trtModelStream = new char[size];
+                assert(trtModelStream);
+                file.read(trtModelStream, size);
+                file.close();
+            }
+        } else {
+            return -1;
+        }
+        // input data
+        float data[BATCH_SIZE * 3 * INPUT_H * INPUT_W];
+
+        cv::Mat im1 = cv::imread("test.jpg");
+        cv::Mat im2 = preprocessImage(im1, INPUT_W, INPUT_H);
+        // 去均值
+
         return 0;
     }
 }
