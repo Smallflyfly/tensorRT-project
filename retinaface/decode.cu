@@ -3,8 +3,9 @@
 //
 
 #include "decode.h"
+#include "stdio.h"
 
-using namespace decodeplugin;
+//using namespace decodeplugin;
 
 namespace nvinfer1
 {
@@ -38,11 +39,11 @@ namespace nvinfer1
         for (int k = 0; k < 2; k++) {
             float conf1 = clsReg[idx + k * totalGrid * 2];
             float conf2 = clsReg[idx + k * totalGrid * 2 + totalGrid];
-            conf2 = expf(conf1) / (expf(conf1) + expf(conf2));
+            conf2 = expf(conf2) / (expf(conf1) + expf(conf2));
             if (conf2 <= 0.02) continue;
 
             float *resCount = output + bnIdx * outputElem;
-            int count = atomicAdd(resCount, 1);
+            int count = (int)atomicAdd(resCount, 1);
             char *data = (char *)resCount + sizeof(float) + count * sizeof(decodeplugin::Detection);
             decodeplugin::Detection* det = (decodeplugin::Detection*)(data);
 
@@ -67,7 +68,7 @@ namespace nvinfer1
             det->bbox[3] *= decodeplugin::INPUT_H;
             det->class_confidence = conf2;
             for (int i = 0; i < 10; i += 2) {
-                det->landmark[i] = prior[0] + lmReg[idx + k * totalGrid * 10 + totalGrid] * 0.1  * prior[2];
+                det->landmark[i] = prior[0] + lmReg[idx + k * totalGrid * 10 + totalGrid * i] * 0.1  * prior[2];
                 det->landmark[i+1] = prior[1] + lmReg[idx + k * totalGrid * 10 + totalGrid * (i + 1)] * 0.1 * prior[3];
                 det->landmark[i] *= decodeplugin::INPUT_W;
                 det->landmark[i+1] *= decodeplugin::INPUT_H;
@@ -86,7 +87,7 @@ namespace nvinfer1
         totalCount += decodeplugin::INPUT_H / 16 * decodeplugin::INPUT_W / 16 * 2 * sizeof(decodeplugin::Detection) / sizeof(float);
         totalCount += decodeplugin::INPUT_H / 32 * decodeplugin::INPUT_W / 32 * 2 * sizeof(decodeplugin::Detection) / sizeof(float);
         for (int i = 0; i < batchSize; i++) {
-            cudaMemset(output + i + totalCount, 0, sizeof(float));
+            cudaMemset(output + i * totalCount, 0, sizeof(float));
         }
 
         for (int i = 0; i < 3; i++) {
@@ -107,7 +108,7 @@ namespace nvinfer1
     }
 
     int DecodePlugin::getNbOutputs() const {
-        return 0;
+        return 1;
     }
 
     Dims DecodePlugin::getOutputDimensions(int index, const Dims *inputs, int nbInputDims) {
@@ -195,12 +196,12 @@ namespace nvinfer1
 
     bool DecodePlugin::supportsFormatCombination(int pos, const PluginTensorDesc *inOut, int nbInputs,
                                                  int nbOutputs) const {
-        return false;
+        return inOut[pos].format == TensorFormat::kLINEAR && inOut[pos].type == DataType::kFLOAT;
     }
 
-    int DecodePlugin::getTensorRTVersion() const {
-        return IPluginV2IOExt::getTensorRTVersion();
-    }
+//    int DecodePlugin::getTensorRTVersion() const {
+//        return IPluginV2IOExt::getTensorRTVersion();
+//    }
 
     PluginFieldCollection DecodePluginCreator::mFC{};
     std::vector<PluginField> DecodePluginCreator::mPluginAttributes;
@@ -215,8 +216,6 @@ namespace nvinfer1
     DecodePluginCreator::~DecodePluginCreator() {
 
     }
-
-
 
     int DecodePluginCreator::getTensorRTVersion() const {
         return IPluginCreator::getTensorRTVersion();

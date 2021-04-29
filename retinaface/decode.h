@@ -27,14 +27,9 @@ namespace nvinfer1
     {
     public:
         DecodePlugin();
-
-        virtual ~DecodePlugin();
-
         DecodePlugin(const void* data, size_t length);
 
-        const char *getPluginType() const TRTNOEXCEPT override;
-
-        const char *getPluginVersion() const TRTNOEXCEPT override;
+        ~DecodePlugin();
 
         int getNbOutputs() const TRTNOEXCEPT override;
 
@@ -47,13 +42,22 @@ namespace nvinfer1
         size_t getWorkspaceSize(int maxBatchSize) const TRTNOEXCEPT override;
 
         int enqueue(int batchSize, const void *const *inputs, void **outputs, void *workspace,
-                        cudaStream_t stream) TRTNOEXCEPT override;
+                    cudaStream_t stream) TRTNOEXCEPT override;
 
         size_t getSerializationSize() const TRTNOEXCEPT override;
 
         void serialize(void *buffer) const TRTNOEXCEPT override;
 
+        bool supportsFormatCombination(int pos, const PluginTensorDesc *inOut, int nbInputs,
+                                       int nbOutputs) const TRTNOEXCEPT override;
+
+        const char *getPluginType() const TRTNOEXCEPT override;
+
+        const char *getPluginVersion() const TRTNOEXCEPT override;
+
         void destroy() TRTNOEXCEPT override;
+
+        IPluginV2IOExt *clone() const TRTNOEXCEPT override;
 
         void setPluginNamespace(const char *pluginNamespace) TRTNOEXCEPT override;
 
@@ -69,26 +73,21 @@ namespace nvinfer1
 
         void attachToContext(cudnnContext *context, cublasContext *cublasContext, IGpuAllocator *allocator) override;
 
-        void detachFromContext() override;
-
         void configurePlugin(const PluginTensorDesc *in, int nbInput, const PluginTensorDesc *out,
                              int nbOutput) TRTNOEXCEPT override;
 
-        bool supportsFormatCombination(int pos, const PluginTensorDesc *inOut, int nbInputs,
-                                       int nbOutputs) const TRTNOEXCEPT override;
+        void detachFromContext() override;
 
-    protected:
-        int getTensorRTVersion() const override;
 
-    public:
-        IPluginV2IOExt *clone() const TRTNOEXCEPT override;
+        int input_size_;
 
+//    protected:
+//        int getTensorRTVersion() const override;
 
     private:
         void forwardGpu(const float *const *inputs, float *output, cudaStream_t  stream, int batchSize = 1);
         int threadCount_ = 256;
         const char* mPluginNamespace;
-
     };
 
     class DecodePluginCreator : public IPluginCreator
@@ -121,9 +120,9 @@ namespace nvinfer1
         static std::vector<PluginField> mPluginAttributes;
     };
 
+    REGISTER_TENSORRT_PLUGIN(DecodePluginCreator);
+};
 
-}
 
 
-
-#endif //RETINAFACE_DECODE_CUH
+#endif

@@ -17,6 +17,7 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/videoio.hpp"
+#include "decode.h"
 
 #define DEVICE 0
 #define BATCH_SIZE 1
@@ -75,7 +76,7 @@ IScaleLayer* addBN(INetworkDefinition *network, map<string, Weights> &weightMap,
     float *mean = (float *)weightMap[layerName + ".running_mean"].values;
     float *var = (float *)weightMap[layerName + ".running_var"].values;
 
-    int len = weightMap[layerName + ".weight"].count;
+    int len = weightMap[layerName + ".running_var"].count;
 
     auto *scval = reinterpret_cast<float *>(malloc(sizeof(float) * len));
     auto *shval = reinterpret_cast<float *>(malloc(sizeof(float) * len));
@@ -106,7 +107,7 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
 
     IConvolutionLayer *conv1 = network->addConvolutionNd(input, outCh, DimsHW{1, 1}, weightMap[layerName + ".conv1.weight"], emptyWt);
     assert(conv1);
-    conv1->setStrideNd(DimsHW{1, 1});
+    conv1->setStrideNd(DimsHW{1, 1}); // 差异点
 
     IScaleLayer *bn1 = addBN(network, weightMap, *conv1->getOutput(0), layerName + ".bn1", 1e-5);
     IActivationLayer *relu1 = network->addActivation(*bn1->getOutput(0), ActivationType::kRELU);
@@ -130,13 +131,13 @@ IActivationLayer* bottleneck(INetworkDefinition *network, map<string, Weights>& 
     IElementWiseLayer *ew1;
     if (stride != 1 || inCh != outCh * 4) {
         // downsample
-        IConvolutionLayer *conv4 = network->addConvolutionNd(*bn3->getOutput(0), outCh * 4, DimsHW{1, 1}, weightMap[layerName + ".downsample.0.weight"], emptyWt);
+        IConvolutionLayer *conv4 = network->addConvolutionNd(input, outCh * 4, DimsHW{1, 1}, weightMap[layerName + ".downsample.0.weight"], emptyWt);
         assert(conv4);
         conv4->setStrideNd(DimsHW{stride, stride});
 
         IScaleLayer *bn4 = addBN(network, weightMap, *conv4->getOutput(0), layerName + ".downsample.1", 1e-5);
 
-        ew1 = network->addElementWise(*bn4->getOutput(0), input, ElementWiseOperation::kSUM);
+        ew1 = network->addElementWise(*bn4->getOutput(0), *bn3->getOutput(0), ElementWiseOperation::kSUM);
     } else {
         ew1 = network->addElementWise(*bn3->getOutput(0), input, ElementWiseOperation::kSUM);
     }
@@ -213,10 +214,10 @@ IConvolutionLayer* lmHead(INetworkDefinition *network, map<string, Weights> &wei
 
 // just use tensorrt api to construct network
 ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *config, DataType dataType) {
-    INetworkDefinition *network = builder->createNetworkV2(0u);
+    INetworkDefinition *network = builder->createNetworkV2(0U);
 
     // input
-    ITensor *data = network->addInput(INPUT_BLOB_NAME, dataType, Dims{3, INPUT_H, INPUT_W});
+    ITensor *data = network->addInput(INPUT_BLOB_NAME, dataType, Dims3{3, INPUT_H, INPUT_W});
     assert(data);
 
     map<string, Weights> weightMap = loadWeight("retinaface.wts");
@@ -229,7 +230,6 @@ ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *c
     conv1->setPaddingNd(DimsHW{3, 3});
 
     IScaleLayer *bn1 = addBN(network, weightMap, *conv1->getOutput(0), "body.bn1", 1e-5);
-    assert(bn1);
 
     // relu
     IActivationLayer *relu1 = network->addActivation(*bn1->getOutput(0), ActivationType::kRELU);
@@ -314,22 +314,23 @@ ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *c
     auto lmHead2 = lmHead(network, weightMap, *ssh2->getOutput(0), 2, "LandmarkHead.1.conv1x1");
     auto lmHead3 = lmHead(network, weightMap, *ssh3->getOutput(0), 2, "LandmarkHead.2.conv1x1");
 
-    ITensor *bboxTensors[] = {bboxHead1->getOutput(0), bboxHead2->getOutput(0), bboxHead3->getOutput(0)};
-    auto bboxCat = network->addConcatenation(bboxTensors, 3);
-    assert(bboxCat);
+    // decode bbox conf landmark
+    ITensor *inputTensors1[] = {bboxHead1->getOutput(0), clsHead1->getOutput(0), lmHead1->getOutput(0)};
+    auto cat1 = network->addConcatenation(inputTensors1, 3);
+    assert(cat1);
 
-    ITensor *clsTensors[] = {clsHead1->getOutput(0), clsHead2->getOutput(0), clsHead3->getOutput(0)};
-    auto clsCat = network->addConcatenation(clsTensors, 3);
-    assert(clsCat);
+    ITensor *inputTensors2[] = {bboxHead2->getOutput(0), clsHead2->getOutput(0), lmHead2->getOutput(0)};
+    auto cat2 = network->addConcatenation(inputTensors2, 3);
+    assert(cat2);
 
-    ITensor *lmTensors[] = {lmHead1->getOutput(0), lmHead2->getOutput(0), lmHead3->getOutput(0)};
-    auto lmCat = network->addConcatenation(lmTensors, 3);
-    assert(lmCat);
+    ITensor *inputTensors3[] = {bboxHead3->getOutput(0), clsHead3->getOutput(0), lmHead3->getOutput(0)};
+    auto cat3 = network->addConcatenation(inputTensors3, 3);
+    assert(cat3);
 
     auto creator = getPluginRegistry()->getPluginCreator("Decode_TRT", "1");
     PluginFieldCollection pfc;
     IPluginV2 *pluginObj = creator->createPlugin("decode", &pfc);
-    ITensor *inputTensors[] = {bboxCat->getOutput(0), clsCat->getOutput(0), lmCat->getOutput(0)};
+    ITensor *inputTensors[] = {cat1->getOutput(0), cat2->getOutput(0), cat3->getOutput(0)};
     auto decodeLayer = network->addPluginV2(inputTensors, 3, *pluginObj);
     assert(decodeLayer);
 
@@ -347,6 +348,7 @@ ICudaEngine* createEngine(int maxBatchSize, IBuilder *builder, IBuilderConfig *c
     cout << "Building engine, wait for a while" << endl;
     ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
     assert(engine && "bulid engine fail");
+    cout << "Build engien successfully" << endl;
 
     network->destroy();
     // release memory
