@@ -22,6 +22,7 @@ static const char *engineFile = "yolov5s.trt";
 static const int BATCH_SIZE = 1;
 static const int INPUT_W = 640;
 static const int INPUT_H = 640;
+static const int OUTPUT_SIZE = 25200 * 85;
 static const char *INPUT_BLOB_NAME = "images";
 static const char *OUTPUT_BLOB_NAME = "output";
 
@@ -44,19 +45,36 @@ inline unsigned int getElementSize(nvinfer1::DataType t)
     return 0;
 }
 
-void doInference(IExecutionContext &context, float *data) {
+void doInference(IExecutionContext &context, float *input, float *output) {
     const ICudaEngine &engine = context.getEngine();
     assert(engine.getNbBindings() == 2);
     void *buffers[2];
     const int inputIndex = engine.getBindingIndex(INPUT_BLOB_NAME);
     const int outputIndex = engine.getBindingIndex(OUTPUT_BLOB_NAME);
 
-    for (int i = 0; i < engine.getNbBindings(); ++i) {
-        Dims dims = engine.getBindingDimensions(i);
-        DataType dataType = engine.getBindingDataType(i);
-        int64_t totalSize = volume(dims) * 1 * getElementSize(dataType);
-    }
-    
+//    for (int i = 0; i < engine.getNbBindings(); ++i) {
+//        Dims dims = engine.getBindingDimensions(i);
+//        DataType dataType = engine.getBindingDataType(i);
+//        int64_t totalSize = volume(dims) * 1 * getElementSize(dataType);
+//        buffers[i] = totalSize;
+//
+//    }
+
+    CHECK(cudaMalloc(&buffers[inputIndex], BATCH_SIZE * 3 * INPUT_W * INPUT_H * sizeof(float)));
+    CHECK(cudaMalloc(&buffers[outputIndex], BATCH_SIZE * OUTPUT_SIZE * sizeof(float )));
+
+    //cuda stream
+    cudaStream_t stream;
+    CHECK(cudaStreamCreate(&stream));
+
+    CHECK(cudaMemcpyAsync(buffers[inputIndex], input, BATCH_SIZE * 3 * INPUT_W * INPUT_H * sizeof(float), cudaMemcpyHostToDevice, stream));
+    context.enqueue(BATCH_SIZE, buffers, stream, nullptr);
+    CHECK(cudaMemcpyAsync(output, buffers[outputIndex], BATCH_SIZE * OUTPUT_SIZE * sizeof(float), cudaMemcpyDeviceToHost, stream));
+    cudaStreamSynchronize(stream);
+
+    cudaStreamDestroy(stream);
+    CHECK(cudaFree(buffers[inputIndex]));
+    CHECK(cudaFree(buffers[outputIndex]));
 }
 
 int main() {
@@ -74,6 +92,10 @@ int main() {
     }
     // image file read
     float data[BATCH_SIZE * INPUT_W * INPUT_H];
+    for (int i = 0; i < BATCH_SIZE * INPUT_W * INPUT_H; ++i) {
+        data[i] = 1.0;
+    }
+    float output[BATCH_SIZE * OUTPUT_SIZE];
 
     IRuntime *runtime = createInferRuntime(gLogger);
     assert(runtime != nullptr);
@@ -84,5 +106,5 @@ int main() {
     IExecutionContext *context = engine->createExecutionContext();
     assert(context != nullptr);
 
-    doInference(*context, data);
+    doInference(*context, data, output);
 }
