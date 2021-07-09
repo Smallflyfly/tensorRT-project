@@ -14,8 +14,8 @@ using namespace std;
 using namespace nvinfer1;
 using namespace nvonnxparser;
 
-static const char *onnxName = "yolov5s.onnx";
-static const char *trtName = "yolov5s.trt";
+static const char *onnxName = "best-hamlet.onnx";
+static const char *trtName = "best-hamlet.trt";
 
 static Logger gLogger;
 
@@ -35,9 +35,13 @@ void yolo2trt(const string &onnx) {
     builder->setMaxBatchSize(maxBatchSize);
     IBuilderConfig *config = builder->createBuilderConfig();
     config->setMaxWorkspaceSize(1 << 30);
+    config->setFlag(BuilderFlag::kFP16);
+
     ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
 
     IHostMemory *trtStream = engine->serialize();
+    assert(trtStream != nullptr);
+
     ofstream p(trtName, ios::binary);
     if (!p) {
         cerr << "generate trt file error!" << endl;
@@ -46,6 +50,9 @@ void yolo2trt(const string &onnx) {
     p.write(reinterpret_cast<const char*>(trtStream->data()), trtStream->size());
 
     trtStream->destroy();
+    parser->destroy();
+    network->destroy();
+    builder->destroy();
 }
 
 int main() {
