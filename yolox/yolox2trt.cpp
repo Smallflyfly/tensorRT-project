@@ -14,7 +14,7 @@ using namespace nvonnxparser;
 using namespace nvinfer1;
 
 static const char *onnxName = "yolox-helmet.onnx";
-static const char *trtName = "yolox-helemt.trt";
+static const char *trtName = "yolox-helmet.trt";
 
 static sample::Logger gLogger;
 
