@@ -16,7 +16,7 @@ using namespace nvinfer1;
 static const char *onnxName = "yolox-helmet.onnx";
 static const char *trtName = "yolox-helemt.trt";
 
-static Logger gLogger;
+static sample::Logger gLogger;
 
 static const auto explicitBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
 
@@ -24,7 +24,7 @@ void yolox2trt(const char *onnx) {
     IBuilder *builder = createInferBuilder(gLogger);
     INetworkDefinition *network = builder->createNetworkV2(explicitBatch);
     IParser *parser = createParser(*network, gLogger);
-    parser->parseFromFile(onnx, static_cast<int>(Logger::Severity::kWARNING));
+    parser->parseFromFile(onnx, static_cast<int>(sample::Logger::Severity::kWARNING));
     for (int i = 0; i < parser->getNbErrors(); ++i) {
         cerr << "parser error: " << parser->getError(i)->desc() << endl;
     }
@@ -37,10 +37,10 @@ void yolox2trt(const char *onnx) {
     config->setMaxWorkspaceSize(1<<30);
     config->setFlag(BuilderFlag::kFP16);
 
-    ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
-    assert(engine != nullptr);
-
-    IHostMemory *trtStream = engine->serialize();
+//    ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
+//    assert(engine != nullptr);
+//    IHostMemory *trtStream = engine->serialize();
+    IHostMemory *trtStream = builder->buildSerializedNetwork(*network, *config);
 
     ofstream p(trtName, ios::binary);
     if (!p) {
