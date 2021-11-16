@@ -28,7 +28,32 @@ void yolox2trt(const char *onnx) {
     for (int i = 0; i < parser->getNbErrors(); ++i) {
         cerr << "parser error: " << parser->getError(i)->desc() << endl;
     }
-    gLogger.log(Severity::kINFO, "parser onnx file successfully!");
+//    gLogger.log(Severity::kINFO, "parser onnx file successfully!");
+    cout  << "parser onnx file successfully!" << endl;
+
+    int maxBatchSize = 1;
+    builder->setMaxBatchSize(maxBatchSize);
+    IBuilderConfig *config = builder->createBuilderConfig();
+    config->setMaxWorkspaceSize(1<<30);
+    config->setFlag(BuilderFlag::kFP16);
+
+    ICudaEngine *engine = builder->buildEngineWithConfig(*network, *config);
+    assert(engine != nullptr);
+
+    IHostMemory *trtStream = engine->serialize();
+
+    ofstream p(trtName, ios::binary);
+    if (!p) {
+        cerr << "generate trt file error !" << endl;
+        return;
+    }
+    p.write(reinterpret_cast<const char*>(trtStream->data()), trtStream->size());
+
+    trtStream->destroy();
+    parser->destroy();
+    network->destroy();
+    builder->destroy();
+
 }
 
 int main() {
