@@ -2,7 +2,6 @@
 // Created by smallflyfly on 2021/11/16.
 //
 
-#include "NvInfer.h"
 #include <iostream>
 #include <fstream>
 #include "logging.h"
@@ -12,7 +11,6 @@
 #include "yolox.h"
 
 using namespace std;
-using namespace nvinfer1;
 using namespace cv;
 
 static const char *trtFile = "yolox-helmet.trt";
@@ -57,10 +55,13 @@ int main(int argc, char **argv) {
 //    int w = cap.get(CAP_PROP_FRAME_WIDTH);
 //    int fps = cap.get(CAP_PROP_FPS);
 //    cout << h << " " << w << " " << fps << endl;
+
+    vector<Yolox::Detection> detections;
+
     // image
     Mat image = imread(testFile);
     Mat im = image.clone();
     float scale = 1, pw = 0, ph = 0;
     float *data = prepareImage(image, scale, pw, ph);
-
+    detections = doInference(*context, data);
 }

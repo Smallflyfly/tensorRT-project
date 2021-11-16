@@ -6,6 +6,8 @@
 #define YOLOX_YOLOX_H
 
 #include <opencv2/opencv.hpp>
+#include <vector>
+#include "NvInfer.h"
 
 static const int INPUT_W = 640;
 static const int INPUT_H = 640;
@@ -13,6 +15,8 @@ static const int OUTPUT_SIZE = 8400 * 7;
 static const char *INPUT_NAME = "input";
 static const char *OUTPUT_NAME = "output";
 static const int BATCH_SIZE = 1;
+
+using namespace nvinfer1;
 
 class Yolox {
 public:
@@ -29,5 +33,7 @@ public:
 };
 
 float* prepareImage(cv::Mat image, float &scale, float &pw, float &ph);
+
+std::vector<Yolox::Detection> doInference(IExecutionContext &context, float *input);
 
 #endif //YOLOX_YOLOX_H

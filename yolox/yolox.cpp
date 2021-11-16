@@ -26,3 +26,14 @@ float *prepareImage(cv::Mat image, float &scale, float &pw, float &ph) {
     return nullptr;
 }
 
+std::vector<Yolox::Detection> doInference(IExecutionContext &context, float *input) {
+    const ICudaEngine &engine = context.getEngine();
+    assert(engine.getNbBindings() == 2);
+
+    void *buffer[2];
+    const int inputIndex = engine.getBindingIndex(INPUT_NAME);
+    const int outputIndex = engine.getBindingIndex(OUTPUT_NAME);
+
+    return std::vector<Yolox::Detection>();
+}
+
