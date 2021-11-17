@@ -10,8 +10,8 @@
 #include <opencv2/opencv.hpp>
 #include "yolox.h"
 
-using namespace std;
 using namespace cv;
+using namespace std;
 
 static const char *trtFile = "yolox-helmet.trt";
 

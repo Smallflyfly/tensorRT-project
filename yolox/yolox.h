@@ -8,6 +8,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include "NvInfer.h"
+#include "cuda_runtime.h"
 
 static const int INPUT_W = 640;
 static const int INPUT_H = 640;
@@ -17,6 +18,14 @@ static const char *OUTPUT_NAME = "output";
 static const int BATCH_SIZE = 1;
 
 using namespace nvinfer1;
+
+#define CHECK(status) \
+    do { \
+        auto ret = (status); \
+        if (ret != 0) { \
+            std::cerr << "Cuda failure: " << ret << std::endl; \
+        } \
+    } while(0)
 
 class Yolox {
 public:
