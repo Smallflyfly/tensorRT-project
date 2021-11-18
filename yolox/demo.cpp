@@ -64,4 +64,13 @@ int main(int argc, char **argv) {
     float scale = 1, pw = 0, ph = 0;
     float *data = prepareImage(image, scale, pw, ph);
     detections = doInference(*context, data);
+
+    runtime->destroy();
+    engine->destroy();
+    context->destroy();
+
+    fixDetection(detections, scale, pw, ph);
+    showResult(detections, im);
+
+    return 1;
 }
