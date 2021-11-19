@@ -15,26 +15,13 @@ Mat resizeImage(Mat im, float &scale, float &pw, float &ph) {
     ph = abs(INPUT_H - dh) / 2;
     Mat newIm(INPUT_H, INPUT_W, CV_8UC3, Scalar(114, 114, 114));
     resize(im, im, Size(), scale, scale);
-    im.copyTo(newIm(Rect(0, 0, im.cols, im.rows)));
+    im.copyTo(newIm(Rect(pw, ph, im.cols, im.rows)));
     return newIm;
 }
 
 float *prepareImage(Mat image, float &scale, float &pw, float &ph) {
     Mat im = resizeImage(image, scale, pw, ph);
-    imshow("im", im);
-    waitKey(0);
-    destroyAllWindows();
-//    im.convertTo(im, CV_32FC3, 1.0);
     float *data = (float*) malloc(INPUT_H * INPUT_W * 3 * sizeof(float));
-//    int index = 0;
-//    int channelLength = INPUT_W * INPUT_H;
-//    // BGR TO RGB
-//    vector<Mat> splitImg =  {
-//            Mat(INPUT_H, INPUT_W, CV_32FC1, data + channelLength * (index + 0)),
-//            Mat(INPUT_H, INPUT_W, CV_32FC1, data + channelLength * (index + 1 )),
-//            Mat(INPUT_H, INPUT_W, CV_32FC1, data + channelLength * (index + 2))
-//    };
-//    split(im, splitImg);
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < INPUT_H; ++j) {
             for (int k = 0; k < INPUT_W; ++k) {
@@ -52,20 +39,13 @@ vector<Yolox::Detection> postProcess(float *output) {
     vector<int> strides = {8, 16, 32};
     vector<vector<int>> grids;
     vector<Yolox::Detection> result;
-
-    for(int i =0; i<10; i++) {
-        for (int j=0; j<7; j++)
-            cout << output[i*10 + j] << " ";
-        cout << endl;
-    }
-
     // generate grids
     for(auto &stride : strides) {
         int dx = INPUT_W / stride;
         int dy = INPUT_H / stride;
-        for (int i = 0; i < dx; ++i) {
-            for (int j = 0; j < dy; ++j) {
-                grids.push_back({dx, dy, stride});
+        for (int i = 0; i < dy; ++i) {
+            for (int j = 0; j < dx; ++j) {
+                grids.push_back({j, i, stride});
             }
         }
     }
@@ -88,7 +68,6 @@ vector<Yolox::Detection> postProcess(float *output) {
             float clsConf = output[basePos + 5 + clsIdx];
             float conf = objConf * clsConf;
             if (conf > CONF_THRESHOLD) {
-                cout << conf << endl;
                 Yolox::Detection det{};
                 det.x = xmin;
                 det.y = ymin;
@@ -114,6 +93,8 @@ vector<Yolox::Detection> doInference(IExecutionContext &context, float *input) {
     const int inputIndex = engine.getBindingIndex(INPUT_NAME);
     const int outputIndex = engine.getBindingIndex(OUTPUT_NAME);
 
+    float *output = (float*)malloc(BATCH_SIZE * OUTPUT_SIZE * sizeof(float));
+
     CHECK(cudaMalloc(&buffers[inputIndex], BATCH_SIZE * 3 * INPUT_H * INPUT_W * sizeof(float)));
     CHECK(cudaMalloc(&buffers[outputIndex], BATCH_SIZE * OUTPUT_SIZE * sizeof(float)));
 
@@ -124,7 +105,6 @@ vector<Yolox::Detection> doInference(IExecutionContext &context, float *input) {
     // copy mem from host to device
     CHECK(cudaMemcpyAsync(buffers[inputIndex], input, BATCH_SIZE * 3 * INPUT_H * INPUT_W, cudaMemcpyHostToDevice, cudaStream));
     context.enqueue(BATCH_SIZE, buffers, cudaStream, nullptr);
-    float *output = (float*)malloc(OUTPUT_SIZE * sizeof(float));
     CHECK(cudaMemcpyAsync(output, buffers[outputIndex], BATCH_SIZE * OUTPUT_SIZE * sizeof(float), cudaMemcpyDeviceToHost, cudaStream));
     cudaStreamSynchronize(cudaStream);
     cudaStreamDestroy(cudaStream);
@@ -211,6 +191,9 @@ void showResult(const vector<Yolox::Detection> &detections, Mat &image) {
         Scalar scalar(SHOW_COLOR[cls][0], SHOW_COLOR[cls][1], SHOW_COLOR[cls][2]);
         Rect rect(xmin, ymin, w, h);
         rectangle(image, rect, scalar * 255, 1);
+        string name = CLASSES[cls];
+        Point2d textPoint(xmin+5, ymin-10);
+        putText(image, name, textPoint, FONT_HERSHEY_SIMPLEX, 0.5, scalar * 255, 1);
     }
     imshow("helmet detection", image);
 }

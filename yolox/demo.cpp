@@ -45,32 +45,52 @@ int main(int argc, char **argv) {
     delete[] trtStream;
 
     //camera or video
-//    VideoCapture cap(videoFile);
-//    if (!cap.isOpened()) {
-//        cerr << "read camera/video error" << endl;
-//    }
-//    Mat frame;
-//    cap >> frame;
-//    int h = cap.get(CAP_PROP_FRAME_HEIGHT);
-//    int w = cap.get(CAP_PROP_FRAME_WIDTH);
-//    int fps = cap.get(CAP_PROP_FPS);
-//    cout << h << " " << w << " " << fps << endl;
+    VideoCapture cap(testFile);
+    if (!cap.isOpened()) {
+        cerr << "read camera/video error" << endl;
+    }
+    Mat frame;
+    cap >> frame;
+    int h = cap.get(CAP_PROP_FRAME_HEIGHT);
+    int w = cap.get(CAP_PROP_FRAME_WIDTH);
+    int fps = cap.get(CAP_PROP_FPS);
+    cout << h << " " << w << " " << fps << endl;
+    // save video result
+    VideoWriter videoWriter;
+    int coder = VideoWriter::fourcc('M', 'J', 'P', 'G');
+    videoWriter.open("out.avi", coder, fps, frame.size(), true);
 
-    vector<Yolox::Detection> detections;
+    while (cap.isOpened()) {
+        cap >> frame;
+        if (frame.empty()) {
+            cerr << "frame read error" << endl;
+            break;
+        }
+        Mat image = frame.clone();
+        float scale = 1, pw = 0, ph = 0;
+        float *data = prepareImage(image, scale, pw, ph);
+        vector<Yolox::Detection> detections;
+        detections = doInference(*context, data);
+        fixDetection(detections, scale, pw, ph);
+        showResult(detections, image);
 
-    // image
-    Mat image = imread(testFile);
-    Mat im = image.clone();
-    float scale = 1, pw = 0, ph = 0;
-    float *data = prepareImage(image, scale, pw, ph);
-    detections = doInference(*context, data);
+        videoWriter.write(image);
+
+        if (waitKey(1) == 'q') {
+            break;
+        }
+    }
+
+    destroyAllWindows();
 
     context->destroy();
     engine->destroy();
     runtime->destroy();
 
-    fixDetection(detections, scale, pw, ph);
-    showResult(detections, im);
+
+    videoWriter.release();
+    cap.release();
+
 
     return 1;
 }

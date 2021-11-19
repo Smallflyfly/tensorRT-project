@@ -21,11 +21,11 @@ static const int NUM_CLASSES = 2;
 static const float CONF_THRESHOLD = 0.7;
 static const float NMS_THRESHOLD = 0.7;
 
-static const char *CLASSES[2] = {"NO-HELMET", "HELMET"};
+static const char *CLASSES[2] = {"HELMET", "NO-HELMET"};
 
 static const float SHOW_COLOR[NUM_CLASSES][3] = {
-        {0.000, 0.447, 0.741},
-        {0.850, 0.325, 0.098}
+        {0.8, 0.8, 0.9},
+        {0.850, 0.8, 0.6}
 };
 
 using namespace nvinfer1;
