@@ -18,7 +18,7 @@ static const char *trtFile = "yolox-helmet.trt";
 static sample::Logger gLogger;
 
 int main(int argc, char **argv) {
-    cudaSetDevice(0);
+//    cudaSetDevice(0);
     String testFile = argv[1];
     size_t size{0};
     char *trtStream{nullptr};
@@ -65,9 +65,9 @@ int main(int argc, char **argv) {
     float *data = prepareImage(image, scale, pw, ph);
     detections = doInference(*context, data);
 
-    runtime->destroy();
-    engine->destroy();
     context->destroy();
+    engine->destroy();
+    runtime->destroy();
 
     fixDetection(detections, scale, pw, ph);
     showResult(detections, im);

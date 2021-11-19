@@ -15,7 +15,7 @@ Mat resizeImage(Mat im, float &scale, float &pw, float &ph) {
     ph = abs(INPUT_H - dh) / 2;
     Mat newIm(INPUT_H, INPUT_W, CV_8UC3, Scalar(114, 114, 114));
     resize(im, im, Size(), scale, scale);
-    im.copyTo(newIm(Rect(pw, ph, im.cols, im.rows)));
+    im.copyTo(newIm(Rect(0, 0, im.cols, im.rows)));
     return newIm;
 }
 
@@ -24,7 +24,27 @@ float *prepareImage(Mat image, float &scale, float &pw, float &ph) {
     imshow("im", im);
     waitKey(0);
     destroyAllWindows();
-    return nullptr;
+//    im.convertTo(im, CV_32FC3, 1.0);
+    float *data = (float*) malloc(INPUT_H * INPUT_W * 3 * sizeof(float));
+//    int index = 0;
+//    int channelLength = INPUT_W * INPUT_H;
+//    // BGR TO RGB
+//    vector<Mat> splitImg =  {
+//            Mat(INPUT_H, INPUT_W, CV_32FC1, data + channelLength * (index + 0)),
+//            Mat(INPUT_H, INPUT_W, CV_32FC1, data + channelLength * (index + 1 )),
+//            Mat(INPUT_H, INPUT_W, CV_32FC1, data + channelLength * (index + 2))
+//    };
+//    split(im, splitImg);
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < INPUT_H; ++j) {
+            for (int k = 0; k < INPUT_W; ++k) {
+                data[i * INPUT_W * INPUT_H + j * INPUT_W  + k] = (float)im.at<Vec3b>(j, k)[i];
+            }
+        }
+    }
+    assert(data != nullptr);
+
+    return data;
 }
 
 vector<Yolox::Detection> postProcess(float *output) {
@@ -32,6 +52,13 @@ vector<Yolox::Detection> postProcess(float *output) {
     vector<int> strides = {8, 16, 32};
     vector<vector<int>> grids;
     vector<Yolox::Detection> result;
+
+    for(int i =0; i<10; i++) {
+        for (int j=0; j<7; j++)
+            cout << output[i*10 + j] << " ";
+        cout << endl;
+    }
+
     // generate grids
     for(auto &stride : strides) {
         int dx = INPUT_W / stride;
@@ -61,6 +88,7 @@ vector<Yolox::Detection> postProcess(float *output) {
             float clsConf = output[basePos + 5 + clsIdx];
             float conf = objConf * clsConf;
             if (conf > CONF_THRESHOLD) {
+                cout << conf << endl;
                 Yolox::Detection det{};
                 det.x = xmin;
                 det.y = ymin;
@@ -71,11 +99,11 @@ vector<Yolox::Detection> postProcess(float *output) {
                 result.push_back(det);
             }
         }
-        cout << "before nms detection size: " << result.size() << endl;
-        nms(result);
-        cout << "after nms detection size: " << result.size() << endl;
-        return result;
     }
+    cout << "before nms detection size: " << result.size() << endl;
+    nms(result);
+    cout << "after nms detection size: " << result.size() << endl;
+    return result;
 }
 
 vector<Yolox::Detection> doInference(IExecutionContext &context, float *input) {

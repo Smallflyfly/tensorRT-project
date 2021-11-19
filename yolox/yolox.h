@@ -57,6 +57,8 @@ float* prepareImage(cv::Mat image, float &scale, float &pw, float &ph);
 
 std::vector<Yolox::Detection> doInference(IExecutionContext &context, float *input);
 
+std::vector<Yolox::Detection> postProcess(float *output);
+
 void nms(std::vector<Yolox::Detection> &detections);
 
 float iouCalculate(const Yolox::Detection &det1, const Yolox::Detection &det2);
