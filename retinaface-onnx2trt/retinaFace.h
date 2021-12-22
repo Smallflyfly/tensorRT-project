@@ -27,7 +27,7 @@ using namespace std;
         } \
     } while(0)
 
-static Logger gLogger;
+static sample::Logger gLogger;
 static const char *TRT_FILE = "retinaFace_1output.trt";
 
 static const int BATCH_SIZE = 1;
